@@ -20,6 +20,85 @@ class Dopath(object):
         self.msp = msp
         self.typeConvert = Typeconvert()
 
+    # Do '摆杆'
+    def donext1(self, select):
+        # Add a Label
+        ttk.Label(self.tab2, text='选择前摆杆: ').grid(column=0, row=0)
+        # Add a Label
+        self.carselect = ttk.Label(self.tab2, text='未选择前摆杆', width=12)
+        self.carselect.grid(column=1, row=0)
+        self.carselect.configure(foreground='red')
+        # Add a Button
+        ttk.Button(self.tab2, text='选择', command=self.click_block).grid(column=2, row=0)
+
+        # Add a Label
+        ttk.Label(self.tab2, text='选择后摆杆: ').grid(column=0, row=1)
+        # Add a Label
+        self.carselect = ttk.Label(self.tab2, text='未选择后摆杆', width=12)
+        self.carselect.grid(column=1, row=1)
+        self.carselect.configure(foreground='red')
+        # Add a Button
+        ttk.Button(self.tab2, text='选择', command=self.click_block).grid(column=2, row=1)
+
+        # Add a Label
+        ttk.Label(self.tab2, text='选择工件: ').grid(column=0, row=2)
+        # Add a Label
+        self.carselect = ttk.Label(self.tab2, text='未选择工件', width=12)
+        self.carselect.grid(column=1, row=2)
+        self.carselect.configure(foreground='red')
+        # Add a Button
+        ttk.Button(self.tab2, text='选择', command=self.click_block).grid(column=2, row=2)
+
+        ttk.Label(self.tab2, text='选择工件及摆杆块方向: ').grid(column=0, row=1)
+        self.cardir_value = tk.IntVar()
+        self.cardir_value.set(1)
+        cardir = [('右', 1), ('左', 2)]
+        for i, j in cardir:
+            a31 = ttk.Radiobutton(self.tab2, text=i, value=j, variable=self.cardir_value)
+            a31.grid(column=j, row=1)
+
+        ttk.Label(self.tab2, text='工件前后支撑距离(mm): ').grid(column=0, row=2)
+        self.bracing = tk.StringVar()
+        ttk.Entry(self.tab2, width=12, textvariable=self.bracing).grid(column=1, row=2)
+
+        ttk.Label(self.tab2, text='选择轨迹线并指定起点: ').grid(column=0, row=3)
+        self.pathselect = ttk.Label(self.tab2, text='未选择轨迹线', width=12)
+        self.pathselect.grid(column=1, row=3)
+        self.pathselect.configure(foreground='red')
+        ttk.Button(self.tab2, text='选择', command=self.click_pline).grid(column=2, row=3)
+
+        ttk.Label(self.tab2, text='轨迹步长(mm): ').grid(column=0, row=4)
+        self.step = tk.StringVar()
+        ttk.Entry(self.tab2, width=12, textvariable=self.step).grid(column=1, row=4)
+
+        # 若为仿真动画，则启用工件数量、节距选项
+        l31 = ttk.Label(self.tab2, text='工件数量: ')
+        l31.grid(column=0, row=5)
+        self.carnum = tk.StringVar()
+        e31 = ttk.Entry(self.tab2, width=12, textvariable=self.carnum)
+        e31.grid(column=1, row=5)
+        l32 = ttk.Label(self.tab2, text='工件节距(mm): ')
+        l32.grid(column=0, row=6)
+        self.pitch = tk.StringVar()
+        e32 = ttk.Entry(self.tab2, width=12, textvariable=self.pitch)
+        e32.grid(column=1, row=6)
+        if select % 10 == 1:
+            l31.configure(state='disabled')
+            e31.configure(state='disabled')
+            l32.configure(state='disabled')
+            e32.configure(state='disabled')
+
+        tab2_Button = ttk.LabelFrame(self.tab2, text='')
+        tab2_Button.grid(column=0, row=7, columnspan=3)
+        self.b21 = ttk.Button(tab2_Button, text='确定', command=lambda: self.do_path3(select))
+        self.b21.grid(column=0, row=0, padx=8, pady=8)
+        self.b22 = ttk.Button(tab2_Button, text='退出', command=self.oop.quit)
+        self.b22.grid(column=1, row=0, padx=8, pady=8)
+
+        for child in self.tab2.winfo_children():
+            if child != tab2_Button:
+                child.grid_configure(sticky=tk.W, padx=8, pady=4)
+
     # Do '台车'
     def donext3(self, select):
         # Add a Label
@@ -190,7 +269,7 @@ class Dopath(object):
         steppnt = [1] * len(slt)
         for i in range(len(slt)):
             steppnt[i] = slt[len(slt) - i - 1].Coordinates[:2]
-        print(steppnt)
+        # print(steppnt)
         slt.Erase()
         slt.Delete()
         self.doc.ActiveLayer = self.doc.Layers("0")
@@ -269,7 +348,7 @@ class Dopath(object):
         mt.height = 200
         for i in steppnt:
             if ((j - 1) * float(step.get()) + frtstep) > float(bracing.get()):
-                print((j - 1) * float(step.get()) + frtstep)
+                # print((j - 1) * float(step.get()) + frtstep)
                 layernum = (j - 1) % len(clrnums)
                 self.doc.ActiveLayer = self.doc.Layers(layernames[layernum])
                 inspnt = self.typeConvert.vtpnt(i[0], i[1])
@@ -282,7 +361,7 @@ class Dopath(object):
                 for k in range(len(leng)):
                     if ((j - 1) * float(step.get()) + frtstep) < leng[k]:
                         jj += 1
-                        print(leng[k])
+                        # print(leng[k])
                         plpnt = pline.Coordinates[(k * 2):(k * 2 + 2)]
                         plpnt = self.typeConvert.vtpnt(plpnt[0], plpnt[1])
                         angpl = self.doc.Utility.AngleFromXAxis(plpnt, inspnt)
@@ -355,7 +434,7 @@ class Dopath(object):
             car = [1] * int(carnum.get())
             if ((j - 1) * float(step.get()) + frtstep) > (
                     (int(carnum.get()) - 1) * float(pitch.get()) + float(bracing.get())):
-                print((j - 1) * float(step.get()) + frtstep)
+                # print((j - 1) * float(step.get()) + frtstep)
                 for num in range(int(carnum.get())):
                     layernum = num % len(clrnums)
                     self.doc.ActiveLayer = self.doc.Layers(layernames[layernum])
@@ -374,7 +453,7 @@ class Dopath(object):
                     for k in range(len(leng)):
                         if ((j - 1) * float(step.get()) + frtstep - num * float(pitch.get())) < leng[k]:
                             jj += 1
-                            print(leng[k])
+                            # print(leng[k])
                             plpnt = pline.Coordinates[(k * 2):(k * 2 + 2)]
                             plpnt = self.typeConvert.vtpnt(plpnt[0], plpnt[1])
                             angpl = self.doc.Utility.AngleFromXAxis(plpnt, inspnt)

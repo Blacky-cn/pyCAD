@@ -31,7 +31,9 @@ class Callbacks(object):
         for child in self.tab2.winfo_children():
             child.destroy()
         self.doselect = self.oop.cartype_value.get() * 10 + self.oop.pathtype_value.get()
-        if self.doselect // 10 == 3:
+        if self.doselect // 10 == 1:
+            self.doPath.donext1(self.doselect)
+        elif self.doselect // 10 == 3:
             self.doPath.donext3(self.doselect)
 
     # Radiobutton Callback

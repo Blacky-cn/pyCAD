@@ -15,7 +15,7 @@ class OOP(object):
         # Create Instance
         self.win = tk.Tk()
         self.win.title("AutoPath")
-        self.win.geometry('360x320')
+        self.win.geometry('660x380')
         self.create_widgets()
 
     ##########################################################################

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @author: LZH
-cadpath_20210817重构使用class，合并轨迹与仿真选项卡
+轨迹函数
 """
 
 import math
@@ -236,21 +236,25 @@ class Dopath(object):
         self.bracing = tk.StringVar()
         ttk.Entry(self.tab2_Frame2, width=12, textvariable=self.bracing).grid(column=1, row=1)
 
-        ttk.Label(self.tab2_Frame2, text='轨迹步长(mm): ').grid(column=0, row=2)
+        tk.Label(self.tab2_Frame2, text='摆杆长度1(mm): ').grid(column=0, row=2)
+        self.swingleng1 = tk.StringVar()
+        ttk.Entry(self.tab2_Frame2, width=12, textvariable=self.swingleng1).grid(column=1, row=2)
+
+        ttk.Label(self.tab2_Frame2, text='轨迹步长(mm): ').grid(column=0, row=3)
         self.step = tk.StringVar()
-        ttk.Entry(self.tab2_Frame2, width=12, textvariable=self.step).grid(column=1, row=2)
+        ttk.Entry(self.tab2_Frame2, width=12, textvariable=self.step).grid(column=1, row=3)
 
         # 若为仿真动画，则启用工件数量、节距选项
         l31 = ttk.Label(self.tab2_Frame2, text='工件数量: ')
-        l31.grid(column=0, row=3)
+        l31.grid(column=0, row=4)
         self.carnum = tk.StringVar()
         e31 = ttk.Entry(self.tab2_Frame2, width=12, textvariable=self.carnum)
-        e31.grid(column=1, row=3)
+        e31.grid(column=1, row=4)
         l32 = ttk.Label(self.tab2_Frame2, text='工件节距(mm): ')
-        l32.grid(column=0, row=4)
+        l32.grid(column=0, row=5)
         self.pitch = tk.StringVar()
         e32 = ttk.Entry(self.tab2_Frame2, width=12, textvariable=self.pitch)
-        e32.grid(column=1, row=4)
+        e32.grid(column=1, row=5)
         if select % 10 == 1:
             l31.configure(state='disabled')
             e31.configure(state='disabled')

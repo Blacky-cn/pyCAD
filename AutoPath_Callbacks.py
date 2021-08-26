@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @author: LZH
+GUI Button调用函数
 """
 
 import win32com.client

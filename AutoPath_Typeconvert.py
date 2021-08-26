@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @author: LZH
-cadpath_20210817重构使用class，合并轨迹与仿真选项卡
+win32com与cad中数据类型转换
 """
 
 import pythoncom

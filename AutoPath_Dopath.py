@@ -5,13 +5,18 @@
 轨迹函数
 """
 
-import math
+# =================
+# imports
+# =================
 import tkinter as tk
 from tkinter import ttk, messagebox as msg
+import math
 import time
 from AutoPath_Typeconvert import Typeconvert
+import AutoPath_ToopTip as tt
 
 
+# =========================================================
 class Dopath(object):
     def __init__(self, oop, tab2, doc, msp):
         self.oop = oop
@@ -19,6 +24,9 @@ class Dopath(object):
         self.doc = doc
         self.msp = msp
         self.typeConvert = Typeconvert()
+        style = ttk.Style()
+        style.configure('R.TButton', foreground='red')
+        style.configure('G.TButton', foreground='green')
 
     # 选择工件
     def click_block(self):
@@ -172,133 +180,175 @@ class Dopath(object):
                 break
         return sndpnt
 
-    ##############################
+    # =====================================================
     # Do '摆杆'
-    ##############################
+    # =====================================================
     def donext1(self, select):
-        # Add Frame1_图块选择================================================================
+        # ======================================================
+        # 摆杆轨迹/仿真+包络线
+        # ======================================================
+        # Add Frame1_图块选择============================================
         self.tab2_Frame1 = ttk.LabelFrame(self.tab2, text='图块选择')
         self.tab2_Frame1.grid(column=0, row=0, sticky='WN', padx=8, pady=4)
 
-        # Add a Label
-        ttk.Label(self.tab2_Frame1, text='选择前摆杆: ').grid(column=0, row=0)
-        # Add a Label
-        self.carselect = ttk.Label(self.tab2_Frame1, text='未选择前摆杆', width=12)
-        self.carselect.grid(column=1, row=0)
-        self.carselect.configure(foreground='red')
-        # Add a Button
-        ttk.Button(self.tab2_Frame1, text='选择', command=self.click_block).grid(column=2, row=0)
+        # Add a Label_选择摆杆
+        ttk.Label(self.tab2_Frame1, text='请选择摆杆: ').grid(column=0, row=0)
+        # Add a Button_选择前摆杆
+        b_choose_FSwing = ttk.Button(self.tab2_Frame1, text='未选择前摆杆', style='R.TButton', command=self.click_block)
+        b_choose_FSwing.grid(column=1, row=0)
+        # Add a Button_选择后摆杆
+        b_choose_BSwing = ttk.Button(self.tab2_Frame1, text='未选择后摆杆', style='R.TButton', command=self.click_block)
+        b_choose_BSwing.grid(column=2, row=0)
 
-        # Add a Label
-        ttk.Label(self.tab2_Frame1, text='选择后摆杆: ').grid(column=0, row=1)
-        # Add a Label
-        self.carselect = ttk.Label(self.tab2_Frame1, text='未选择后摆杆', width=12)
-        self.carselect.grid(column=1, row=1)
-        self.carselect.configure(foreground='red')
-        # Add a Button
-        ttk.Button(self.tab2_Frame1, text='选择', command=self.click_block).grid(column=2, row=1)
+        # Add a Label_选择工件
+        ttk.Label(self.tab2_Frame1, text='工件: ').grid(column=0, row=1)
+        # Add a Button_选择工件
+        b_choose_car = ttk.Button(self.tab2_Frame1, text='未选择工件', style='R.TButton', command=self.click_block)
+        b_choose_car.grid(column=1, row=1)
 
-        # Add a Label
-        ttk.Label(self.tab2_Frame1, text='选择工件: ').grid(column=0, row=2)
-        # Add a Label
-        self.carselect = ttk.Label(self.tab2_Frame1, text='未选择工件', width=12)
-        self.carselect.grid(column=1, row=2)
-        self.carselect.configure(foreground='red')
-        # Add a Button
-        ttk.Button(self.tab2_Frame1, text='选择', command=self.click_block).grid(column=2, row=2)
+        # Add a Label_选择轨迹线
+        ttk.Label(self.tab2_Frame1, text='轨迹线及起点: ').grid(column=0, row=2)
+        # Add a Button_选择轨迹线
+        b_choose_path = ttk.Button(self.tab2_Frame1, text='未选择轨迹线', style='R.TButton', command=self.click_pline)
+        b_choose_path.grid(column=1, row=2)
 
-        ttk.Label(self.tab2_Frame1, text='选择轨迹线并指定起点: ').grid(column=0, row=3)
-        self.pathselect = ttk.Label(self.tab2_Frame1, text='未选择轨迹线', width=12)
-        self.pathselect.grid(column=1, row=3)
-        self.pathselect.configure(foreground='red')
-        ttk.Button(self.tab2_Frame1, text='选择', command=self.click_pline).grid(column=2, row=3)
+        # Add a Label_选择工件方向
+        l_dir = ttk.Label(self.tab2_Frame1, text='工件方向: ')
+        l_dir.grid(column=0, row=3)
+        # Add a Tooltip_提示框
+        tt.create_ToolTip(l_dir, '工件与摆杆方向需一致')
+        # Add Radiobutton_选择工件方向
+        self.dir_value = tk.IntVar()
+        self.dir_value.set(1)
+        dir = [('右', 1), ('左', 2)]
+        for i, j in dir:
+            rb_dir = ttk.Radiobutton(self.tab2_Frame1, text=i, value=j, variable=self.dir_value)
+            rb_dir.grid(column=j, row=3)
 
-        ttk.Label(self.tab2_Frame1, text='选择工件及摆杆块方向: ').grid(column=0, row=4)
-        self.cardir_value = tk.IntVar()
-        self.cardir_value.set(1)
-        cardir = [('右', 1), ('左', 2)]
-        for i, j in cardir:
-            a31 = ttk.Radiobutton(self.tab2_Frame1, text=i, value=j, variable=self.cardir_value)
-            a31.grid(column=j, row=4)
-
-        for child in self.tab2_Frame1.winfo_children():
-            child.grid_configure(sticky=tk.W, padx=8, pady=4)
-
-        # Add Frame2_基本参数================================================================
-        self.tab2_Frame2 = ttk.LabelFrame(self.tab2, text='基本参数')
-        self.tab2_Frame2.grid(column=1, row=0, sticky='WN', padx=8, pady=4)
-
-        ttk.Label(self.tab2_Frame2, text='链板节距(mm): ').grid(column=0, row=0)
-        self.chainbracing = tk.StringVar()
-        ttk.Entry(self.tab2_Frame2, width=12, textvariable=self.chainbracing).grid(column=1, row=0)
-
-        ttk.Label(self.tab2_Frame2, text='前后摆杆间距(mm): ').grid(column=0, row=1)
-        self.bracing = tk.StringVar()
-        ttk.Entry(self.tab2_Frame2, width=12, textvariable=self.bracing).grid(column=1, row=1)
-
-        tk.Label(self.tab2_Frame2, text='摆杆长度1(mm): ').grid(column=0, row=2)
-        self.swingleng1 = tk.StringVar()
-        ttk.Entry(self.tab2_Frame2, width=12, textvariable=self.swingleng1).grid(column=1, row=2)
-
-        ttk.Label(self.tab2_Frame2, text='轨迹步长(mm): ').grid(column=0, row=3)
-        self.step = tk.StringVar()
-        ttk.Entry(self.tab2_Frame2, width=12, textvariable=self.step).grid(column=1, row=3)
-
-        # 若为仿真动画，则启用工件数量、节距选项
-        l31 = ttk.Label(self.tab2_Frame2, text='工件数量: ')
-        l31.grid(column=0, row=4)
-        self.carnum = tk.StringVar()
-        e31 = ttk.Entry(self.tab2_Frame2, width=12, textvariable=self.carnum)
-        e31.grid(column=1, row=4)
-        l32 = ttk.Label(self.tab2_Frame2, text='工件节距(mm): ')
-        l32.grid(column=0, row=5)
-        self.pitch = tk.StringVar()
-        e32 = ttk.Entry(self.tab2_Frame2, width=12, textvariable=self.pitch)
-        e32.grid(column=1, row=5)
-        if select % 10 == 1:
-            l31.configure(state='disabled')
-            e31.configure(state='disabled')
-            l32.configure(state='disabled')
-            e32.configure(state='disabled')
-
-        for child in self.tab2_Frame2.winfo_children():
-            child.grid_configure(sticky=tk.W, padx=8, pady=4)
-
-        # Add Frame3_浸入即出================================================================
-        self.tab2_Frame3 = ttk.LabelFrame(self.tab2, text='浸入即出状态分析')
-        self.tab2_Frame3.grid(column=0, row=1, sticky='WN', columnspan=2, padx=8, pady=4)
-
-        ttk.Label(self.tab2_Frame3, text='选择摆杆状态: ').grid(column=0, row=0)
+        # Add a Label_选择摆杆状态
+        ttk.Label(self.tab2_Frame1, text='摆杆状态: ').grid(column=0, row=4)
+        # Add Radiobutton_选择摆杆状态
         self.swingstate_value = tk.IntVar()
         self.swingstate_value.set(1)
         swingstate = [('前摆杆竖直', 1), ('后摆杆竖直', 2)]
         for i, j in swingstate:
-            a32 = ttk.Radiobutton(self.tab2_Frame3, text=i, value=j, variable=self.swingstate_value)
-            a32.grid(column=j, row=0)
+            rb_swingstate = ttk.Radiobutton(self.tab2_Frame1, text=i, value=j, variable=self.swingstate_value)
+            rb_swingstate.grid(column=j, row=4)
 
-        ttk.Button(self.tab2_Frame3, text='分析', command=lambda: self.do_diptank(self.swingstate_value.get())).grid(
+        # Add a Label_是否绘制包络线
+        c_envelope_value = tk.IntVar()
+        c_envelope = tk.Checkbutton(self.tab2_Frame1, text='提取包络线: ', variable=c_envelope_value)
+        c_envelope.grid(column=0, row=5)
+        c_envelope.deselect()
+        # Add a Button_选择上包络线特征点
+        b_choose_uenvelope = ttk.Button(self.tab2_Frame1, text='未选择上特征点', style='R.TButton', command=self.click_pline)
+        b_choose_uenvelope.grid(column=1, row=5)
+        # Add a Button_选择下包络线特征点
+        b_choose_lenvelope = ttk.Button(self.tab2_Frame1, text='未选择下特征点', style='R.TButton', command=self.click_pline)
+        b_choose_lenvelope.grid(column=2, row=5)
+        if select % 10 == 2:
+            c_envelope.configure(state='disabled')
+            b_choose_uenvelope.configure(state='disabled')
+            b_choose_lenvelope.configure(state='disabled')
+
+        self.b_entry = ttk.Button(self.tab2_Frame1, text='确定', command=lambda: self.do_path3(select))
+        self.b_entry.grid(column=1, row=6)
+
+        for child in self.tab2_Frame1.winfo_children():
+            child.grid_configure(sticky=tk.W, padx=8, pady=2)
+
+        # Add Frame2_基本参数============================================
+        self.tab2_Frame2 = ttk.LabelFrame(self.tab2, text='基本参数')
+        self.tab2_Frame2.grid(column=1, row=0, sticky='WN', padx=8, pady=4)
+
+        # Add a Label_链板节距
+        ttk.Label(self.tab2_Frame2, text='链板节距(mm): ').grid(column=0, row=0)
+        # Add a Entry_链板节距
+        self.chainbracing = tk.StringVar()
+        ttk.Entry(self.tab2_Frame2, width=12, textvariable=self.chainbracing).grid(column=1, row=0)
+
+        # Add a Label_摆杆间距
+        ttk.Label(self.tab2_Frame2, text='摆杆间距(mm): ').grid(column=0, row=1)
+        self.bracing = tk.StringVar()
+        # Add a Entry_摆杆间距
+        ttk.Entry(self.tab2_Frame2, width=12, textvariable=self.bracing).grid(column=1, row=1)
+
+        # Add a Label_摆杆长度1
+        l_swingleng1 = tk.Label(self.tab2_Frame2, text='摆杆长度1(mm): ')
+        l_swingleng1.grid(column=0, row=2)
+        # Add a Tooltip_提示框
+        tt.create_ToolTip(l_swingleng1, '套筒中心至橇碗中心距离')
+        # Add a Entry_摆杆长度1
+        self.swingleng1 = tk.StringVar()
+        ttk.Entry(self.tab2_Frame2, width=12, textvariable=self.swingleng1).grid(column=1, row=2)
+
+        # Add a Label_轨迹步长
+        ttk.Label(self.tab2_Frame2, text='轨迹步长(mm): ').grid(column=0, row=3)
+        # Add a Entry_轨迹步长
+        self.step = tk.StringVar()
+        ttk.Entry(self.tab2_Frame2, width=12, textvariable=self.step).grid(column=1, row=3)
+
+        # 若为仿真动画，则启用工件数量、节距选项===================================
+        # Add a Label_工件数量
+        l_num = ttk.Label(self.tab2_Frame2, text='工件数量: ')
+        l_num.grid(column=0, row=4)
+        # Add a Entry_工件数量
+        self.carnum = tk.StringVar()
+        e_num = ttk.Entry(self.tab2_Frame2, width=12, textvariable=self.carnum)
+        e_num.grid(column=1, row=4)
+        # Add a Label_工件节距
+        l_pitch = ttk.Label(self.tab2_Frame2, text='工件节距(mm): ')
+        l_pitch.grid(column=0, row=5)
+        # Add a Entry_工件节距
+        self.pitch = tk.StringVar()
+        e_pitch = ttk.Entry(self.tab2_Frame2, width=12, textvariable=self.pitch)
+        e_pitch.grid(column=1, row=5)
+        # 若为绘制轨迹，禁用工件数量、节距选项
+        if select % 10 == 1:
+            l_num.configure(state='disabled')
+            e_num.configure(state='disabled')
+            l_pitch.configure(state='disabled')
+            e_pitch.configure(state='disabled')
+
+        for child in self.tab2_Frame2.winfo_children():
+            child.grid_configure(sticky=tk.W, padx=8, pady=4)
+
+        # Add a Separator
+        ttk.Separator(self.tab2, orient='horizontal').grid(column=0, row=1, columnspan=2, sticky='WE')
+
+        # Add Frame3_浸入即出============================================
+        self.tab2_Frame3 = ttk.LabelFrame(self.tab2, text='浸入即出槽状态分析')
+        self.tab2_Frame3.grid(column=0, row=2, sticky=tk.W, columnspan=2, padx=8, pady=4)
+
+        ttk.Label(self.tab2_Frame3, text='选择分析模式: ').grid(column=0, row=0)
+        self.swingmode_value = tk.IntVar()
+        self.swingmode_value.set(1)
+        swingmode = [('内侧摆杆竖直', 1), ('外侧摆杆竖直', 2)]
+        for i, j in swingmode:
+            ra_swingmode = ttk.Radiobutton(self.tab2_Frame3, text=i, value=j, variable=self.swingmode_value)
+            ra_swingmode.grid(column=j, row=0)
+
+        ttk.Button(self.tab2_Frame3, text='分析', command=lambda: self.do_diptank(self.swingmode_value.get())).grid(
             column=3, row=0)
 
         for child in self.tab2_Frame3.winfo_children():
             child.grid_configure(sticky=tk.W, padx=8, pady=4)
 
-        # Add Frame4=====================================================================
+        # Add Frame4=================================================
         tab2_Button = ttk.LabelFrame(self.tab2, text='')
-        tab2_Button.grid(column=0, row=2, columnspan=2)
-        self.b21 = ttk.Button(tab2_Button, text='确定', command=lambda: self.do_path3(select))
-        self.b21.grid(column=0, row=0, padx=20, pady=8)
-        self.b22 = ttk.Button(tab2_Button, text='退出', command=self.oop.quit)
-        self.b22.grid(column=1, row=0, padx=20, pady=8)
+        tab2_Button.grid(column=0, row=3, columnspan=2)
+        self.b_exit = ttk.Button(tab2_Button, text='退出', command=self.oop.quit)
+        self.b_exit.grid(column=0, row=0, padx=20, pady=8)
 
     # 浸入即出槽分析
     def do_diptank(self, swing):
         pass
 
-    ##############################
+    # =====================================================
     # Do '台车'
-    ##############################
+    # =====================================================
     def donext3(self, select):
-        # Add Frame1=====================================================================
+        # Add Frame1=================================================
         self.tab2_Frame1 = ttk.LabelFrame(self.tab2, text='图块选择')
         self.tab2_Frame1.grid(column=0, row=0, sticky='WN', padx=8, pady=4)
 
@@ -328,7 +378,7 @@ class Dopath(object):
         for child in self.tab2_Frame1.winfo_children():
             child.grid_configure(sticky=tk.W, padx=8, pady=4)
 
-        # Add Frame2=====================================================================
+        # Add Frame2=================================================
         self.tab2_Frame2 = ttk.LabelFrame(self.tab2, text='基本参数')
         self.tab2_Frame2.grid(column=1, row=0, sticky='WN', padx=8, pady=4)
 
@@ -360,7 +410,7 @@ class Dopath(object):
         for child in self.tab2_Frame2.winfo_children():
             child.grid_configure(sticky=tk.W, padx=8, pady=4)
 
-        # Add Frame3=====================================================================
+        # Add Frame3=================================================
         tab2_Button = ttk.LabelFrame(self.tab2, text='')
         tab2_Button.grid(column=0, row=1, columnspan=2)
         self.b21 = ttk.Button(tab2_Button, text='确定', command=lambda: self.do_path3(select))

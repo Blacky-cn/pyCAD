@@ -4,11 +4,15 @@
 @author: LZH
 """
 
+# =================
+# imports
+# =================
 import tkinter as tk
 from tkinter import ttk, Menu
 from AutoPath_Callbacks import Callbacks
 
 
+# =========================================================
 class OOP(object):
     def __init__(self):
         # Create Instance
@@ -17,7 +21,7 @@ class OOP(object):
         self.win.geometry('660x380')
         self.create_widgets()
 
-    ##########################################################################
+    #################################################################
     def create_widgets(self):
         # Create Tab Control
         self.tabControl = ttk.Notebook(self.win)
@@ -70,7 +74,7 @@ class OOP(object):
         help_menu.add_command(label='关于', command=self.callBacks.aboutmsg)
 
 
-# ============================================================
+# =========================================================
 if __name__ == '__main__':
     oop = OOP()
     # oop.win.iconbitmap('car.ico')

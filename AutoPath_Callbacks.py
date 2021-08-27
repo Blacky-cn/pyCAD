@@ -5,12 +5,16 @@
 GUI Button调用函数
 """
 
+# =================
+# imports
+# =================
 import win32com.client
 import time
 from tkinter import ttk, messagebox as msg
 from AutoPath_Dopath import Dopath
 
 
+# =========================================================
 class Callbacks(object):
     def __init__(self, oop):
         wincad = win32com.client.Dispatch("AutoCAD.Application")

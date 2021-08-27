@@ -5,10 +5,14 @@
 win32com与cad中数据类型转换
 """
 
+# =================
+# imports
+# =================
 import pythoncom
 import win32com.client
 
 
+# =========================================================
 class Typeconvert(object):
     def vtpnt(self, x, y, z=0):
         """坐标点转化为浮点数"""

@@ -29,6 +29,13 @@ class Callbacks(object):
         self.oop.tabControl.pack(expand=1, fill='both')  # Pack to make visible
         self.doPath = Dopath(self, self.tab2, self.doc, self.msp)
 
+    # Radiobutton Callback
+    def nexten(self):
+        if (self.oop.cartype_value.get() == 0) or (self.oop.pathtype_value.get() == 0):
+            self.oop.b_next.configure(state='disabled')
+        else:
+            self.oop.b_next.configure(state='normal')
+
     # Button Click Function
     def donext(self):
         self.oop.tabControl.tab(1, state='normal')
@@ -36,17 +43,15 @@ class Callbacks(object):
         for child in self.tab2.winfo_children():
             child.destroy()
         self.doselect = self.oop.cartype_value.get() * 10 + self.oop.pathtype_value.get()
-        if self.doselect // 10 == 1:
+        if self.doselect // 10 == 1:  # 摆杆
             self.doPath.donext1(self.doselect)
-        elif self.doselect // 10 == 3:
-            self.doPath.donext3(self.doselect)
-
-    # Radiobutton Callback
-    def nexten(self):
-        if (self.oop.cartype_value.get() == 0) or (self.oop.pathtype_value.get() == 0):
-            self.oop.b11.configure(state='disabled')
-        else:
-            self.oop.b11.configure(state='normal')
+        elif self.doselect // 10 == 2:  # 翻转机
+            pass
+        else:  # 台车
+            if self.doselect % 10 <= 2:  # 2台车
+                self.doPath.donext31(self.doselect)
+            else:  # 4台车
+                self.doPath.donext32(self.doselect)
 
     # Exit GUI cleanly
     def quit(self):

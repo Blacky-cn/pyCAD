@@ -54,7 +54,7 @@ class OOP(object):
 
         # Add Frame3_确定与退出======================================
         tab1_Frame3 = ttk.LabelFrame(self.tab1, text='')
-        tab1_Frame3.grid(column=0, row=2, sticky=tk.W, padx=8, pady=4)
+        tab1_Frame3.grid(column=0, row=2, padx=8, pady=4)
         self.b_next = ttk.Button(tab1_Frame3, text='下一步', state='disabled', command=self.callBacks.donext)
         self.b_next.grid(column=0, row=0, padx=8, pady=8)
         ttk.Button(tab1_Frame3, text='退出', command=self.callBacks.quit).grid(column=1, row=0, padx=8, pady=8)
@@ -80,17 +80,36 @@ class OOP(object):
         # Add Radiobutton_轨迹类型
         self.pathtype_value = tk.IntVar()
         if self.cartype_value.get() == 1:
-            pathtype = [('工艺段-绘制轨迹', 1), ('工艺段-仿真动画', 2), ('返回段-绘制轨迹', 3), ('返回段-仿真动画', 4),
-                        ('浸入即出槽分析', 5), ('工艺时间计算', 6)]
+            pathtype = {
+                '工艺段-绘制轨迹': 1,
+                '工艺段-仿真动画': 2,
+                '返回段-绘制轨迹': 3,
+                '返回段-仿真动画': 4,
+                '浸入即出槽分析': 5,
+                '工艺时间计算': 6
+            }
         elif self.cartype_value.get() == 2:
-            pathtype = [('工艺段-绘制轨迹', 1), ('工艺段-仿真动画', 2), ('返回段-绘制轨迹', 3), ('返回段-仿真动画', 4),
-                        ('浸入即出槽分析', 5), ('工艺时间计算', 6)]
+            pathtype = {
+                '工艺段-绘制轨迹': 1,
+                '工艺段-仿真动画': 2,
+                '返回段-绘制轨迹': 3,
+                '返回段-仿真动画': 4,
+                '浸入即出槽分析': 5,
+                '工艺时间计算': 6
+            }
         else:
-            pathtype = [('2台车-绘制轨迹', 1), ('2台车-动画仿真', 2), ('4台车-绘制轨迹', 3), ('4台车-动画仿真', 4)]
-        for i, j in pathtype:
-            self.a_pathtype = ttk.Radiobutton(self.tab1_Frame2, text=i, value=j, variable=self.pathtype_value,
+            pathtype = {
+                '2台车-绘制轨迹': 1,
+                '2台车-动画仿真': 2,
+                '4台车-绘制轨迹': 3,
+                '4台车-动画仿真': 4
+            }
+        for pathtypename in pathtype:
+            columnnum = pathtype[pathtypename]
+            self.a_pathtype = ttk.Radiobutton(self.tab1_Frame2, text=pathtypename, value=columnnum,
+                                              variable=self.pathtype_value,
                                               command=self.callBacks.nexten)
-            self.a_pathtype.grid(column=(j - 1) % 4, row=(j - 1) // 4, sticky=tk.W)
+            self.a_pathtype.grid(column=(columnnum - 1) % 4, row=(columnnum - 1) // 4, sticky=tk.W)
         self.pathtype_value.set(0)
 
         for child in self.tab1_Frame2.winfo_children():

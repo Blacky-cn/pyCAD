@@ -5,17 +5,17 @@
 GUI Button调用函数
 """
 
-# =================
-# imports
-# =================
-import win32com.client
+# imports==========
 import time
 from tkinter import ttk, messagebox as msg
-from AutoPath_Dopath import Dopath
+
+import win32com.client
+
+from AutoPath_PathWidgets import PathWidgets
 
 
 # =========================================================
-class Callbacks(object):
+class CallBacks:
     def __init__(self, oop):
         wincad = win32com.client.Dispatch("AutoCAD.Application")
         self.doc = wincad.ActiveDocument
@@ -24,13 +24,14 @@ class Callbacks(object):
         time.sleep(0.1)
         self.msp = self.doc.ModelSpace
         self.oop = oop
-        self.tab2 = ttk.Frame(self.oop.tabControl)  # Create Tab2
-        self.oop.tabControl.add(self.tab2, text='输入参数', state='disabled')  # Add Tab2
-        self.oop.tabControl.pack(expand=1, fill='both')  # Pack to make visible
-        self.doPath = Dopath(self, self.tab2, self.doc, self.msp)
+        self.tab2 = ttk.Frame(self.oop.tabcontrol)  # Create Tab2
+        self.oop.tabcontrol.add(self.tab2, text='输入参数', state='disabled')  # Add Tab2
+        self.oop.tabcontrol.pack(expand=1, fill='both')  # Pack to make visible
+        self.pathwidgets = PathWidgets(self, self.tab2, self.doc, self.msp)
 
     # Radiobutton Callback
     def nexten(self):
+        """当工件类型、轨迹类型都选择后，'下一步'按钮变为可用"""
         if (self.oop.cartype_value.get() == 0) or (self.oop.pathtype_value.get() == 0):
             self.oop.b_next.configure(state='disabled')
         else:
@@ -38,29 +39,31 @@ class Callbacks(object):
 
     # Button Click Function
     def donext(self):
-        self.oop.tabControl.tab(1, state='normal')
-        self.oop.tabControl.select(self.tab2)
+        """根据选择的工件类型、轨迹类型，生成对应初始化GUI"""
+        self.oop.tabcontrol.tab(1, state='normal')
+        self.oop.tabcontrol.select(self.tab2)
         for child in self.tab2.winfo_children():
             child.destroy()
         self.doselect = self.oop.cartype_value.get() * 10 + self.oop.pathtype_value.get()
         if self.doselect // 10 == 1:  # 摆杆
-            self.doPath.donext1(self.doselect)
+            self.pathwidgets.donext_pendulum(self.doselect)
         elif self.doselect // 10 == 2:  # 翻转机
             pass
         else:  # 台车
             if self.doselect % 10 <= 2:  # 2台车
-                self.doPath.donext31(self.doselect)
+                self.pathwidgets.donext_2trolley(self.doselect)
             else:  # 4台车
-                self.doPath.donext32(self.doselect)
+                self.pathwidgets.donext_4trolley(self.doselect)
 
-    # Exit GUI cleanly
     def quit(self):
+        """Exit GUI cleanly"""
         self.oop.win.quit()
         self.oop.win.destroy()
         exit()
 
-    # About Menu
-    def aboutmsg(self):
+    @staticmethod
+    def aboutmsg():
+        """About Menu"""
         msg.showinfo('关于 AutoPath',
                      'AutoPath 2021.1.1 Beta\n\n'
                      'Copyright \u00a9 2021 LZH. All Rights Reserved.\n\n'

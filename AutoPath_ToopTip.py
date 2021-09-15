@@ -5,14 +5,29 @@
 提示框
 """
 
-# =================
-# imports
-# =================
+# imports==========
 import tkinter as tk
 
 
 # =========================================================
-class ToolTip(object):
+def create_tooltip(widget, text):
+    toolTip = ToolTip(widget)  # create instance of class
+
+    def enter(event):
+        try:
+            toolTip.show_tip(text)
+        except:
+            pass
+
+    def leave(event):
+        toolTip.hide_tip()
+
+    widget.bind('<Enter>', enter)  # bind mouse events
+    widget.bind('<Leave>', leave)
+
+
+# =========================================================
+class ToolTip:
     def __init__(self, widget):
         self.widget = widget
         self.tip_window = None
@@ -39,20 +54,3 @@ class ToolTip(object):
         self.tip_window = None
         if tw:
             tw.destroy()
-
-
-# =========================================================
-def create_ToolTip(widget, text):
-    toolTip = ToolTip(widget)  # create instance of class
-
-    def enter(event):
-        try:
-            toolTip.show_tip(text)
-        except:
-            pass
-
-    def leave(event):
-        toolTip.hide_tip()
-
-    widget.bind('<Enter>', enter)  # bind mouse events
-    widget.bind('<Leave>', leave)

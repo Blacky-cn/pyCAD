@@ -9,7 +9,7 @@
 import math
 import time
 
-import AutoPath_TypeConvert as tc
+import AutoPath_TypeConvert as Tc
 
 
 # =========================================================
@@ -18,116 +18,43 @@ class DoPath:
         self.oop = oop
         self.doc = doc
         self.msp = msp
+        self.layerobjs = self.createlayer()
 
-    def do_pendulum(self, select, cardir, chainplate, fswing, bswing, carbody, chainpath, step, chainbracing, bracing,
-                    carnum, pitch):
+    def do_pendulum(self, select, cardir, chainpath, step, chainbracing, bracing, carnum, pitch):
         """摆杆 - 轨迹/动画"""
-        self.steppnt = self.pathpnt(chainpath, step)
-        if select % 10 == 1:
-            self.do_pendulum_load_path(cardir, chainplate, fswing, bswing, carbody, chainpath, self.steppnt, step,
-                                       chainbracing, bracing)
-        else:
-            self.do_pendulum_load_animation(cardir, chainplate, fswing, bswing, carbody, chainpath, self.steppnt, step,
-                                            bracing, carnum, pitch)
-
-    def do_pendulum_load_path(self, cardir, chainplate, fswing, bswing, carbody, chainpath, steppnt, step, chainbracing,
-                              bracing):
-        """摆杆 - 工艺段 - 绘制轨迹"""
-        clrnums = [1, 2, 3, 4, 6]  # 图层颜色列表
-        layernames = ["轨迹层_1", "轨迹层_2", "轨迹层_3", "轨迹层_4", "轨迹层_5"]  # 图层名称列表
-        layerobjs = [self.doc.Layers.Add(i) for i in layernames]  # 批量创建图层
-        for lay in layerobjs:
+        steppnt = self.pathpnt(chainpath, step)
+        for lay in self.layerobjs:
             lay.LayerOn = False  # 关闭图层
-        for i in range(len(layerobjs)):
-            layerobjs[i].color = clrnums[i]
-        leng = self.pline_length(chainpath)
-        for i in range(1, len(leng)):
-            leng[i] += leng[i - 1]
-        j = 1
-        jj = 0  # 判断是否为第一个插入点
-        step0 = ((chainpath.Coordinates[0] - steppnt[0][0]) ** 2 + (
-                chainpath.Coordinates[1] - steppnt[0][1]) ** 2) ** 0.5
-        step1 = ((chainpath.Coordinates[-2] - steppnt[-1][0]) ** 2 + (
-                chainpath.Coordinates[-1] - steppnt[-1][1]) ** 2) ** 0.5
-        if step0 == 0:
-            frtstep = 0
-        elif step0 > step1:
-            frtstep = float(step)
+        self.leng = self.pline_length(chainpath)
+        self.frtstep = self.frtsteppnt(chainpath, steppnt, step, self.leng)
+        if select % 10 == 1:
+            inserttext = "轨道长度：" + str(int(self.leng[-1])) + "mm\n" + "轨迹步长：" + step + "mm"
         else:
-            frtstep = leng[-1] - len(steppnt) * float(step)
-        # 插入文字说明
-        inserttext = "轨迹线长度：" + str(leng[-1] // 1)[:-2] + "mm\n" + "轨迹步长：" + step + "mm"
-        textpnt = tc.vtpnt((chainpath.Coordinates[0] + chainpath.Coordinates[-2]) / 2,
-                           max(chainpath.Coordinates[1], chainpath.Coordinates[-1]) + 3000)
-        mt = self.msp.AddMText(textpnt, 3000, inserttext)
-        mt.height = 200
-        carnum = 2
+            inserttext = "轨道长度：" + str(int(self.leng[-1])) + "mm\n" + "工件节距：" + pitch + "mm"
+        self.insertmt(chainpath, inserttext)
+        j = 1
+        jj = 0  # 判断是否为第一次插入
         for i in steppnt:
-            if ((j - 1) * float(step) + frtstep) > ((carnum - 1) * float(bracing) + float(chainbracing)):
-                # print((j - 1) * float(step.get()) + frtstep)
-                for num in range(carnum):
-                    layernum = (j - 1) % len(clrnums)
-                    self.doc.ActiveLayer = self.doc.Layers(layernames[layernum])
+            car = [carbody] * int(carnum)
+            if ((j - 1) * float(step) + self.frtstep) > ((int(carnum) - 1) * float(pitch) + float(bracing)):
+                # print((j - 1) * float(step.get()) + self.frtstep)
+                for num in range(int(carnum)):
+                    layernum = num % len(self.layerobjs)
+                    self.doc.ActiveLayer = self.doc.Layers(self.layerobjs[layernum].Name)
                     if num == 0:
                         inspnt0 = i
                     else:
-                        nowdist = (j - 1) * float(step) + frtstep - (num - 1) * float(bracing)
-                        inspnt0 = self.getdistpt(chainpath, leng, nowdist, inspnt0, float(bracing))
-                    inspnt = tc.vtpnt(i[0], i[1])
-                    circlebr = self.msp.AddCircle(inspnt, float(chainbracing))
-                    intpnts = chainpath.IntersectWith(circlebr, 0)
-                    angbr = []
-                    for k in range(len(intpnts) // 3):
-                        brpnt = tc.vtpnt(intpnts[k * 3], intpnts[k * 3 + 1])
-                        angbr.append(self.doc.Utility.AngleFromXAxis(brpnt, inspnt))
-                    for k in range(len(leng)):
-                        if ((j - 1) * float(step) + frtstep) < leng[k]:
-                            jj += 1
-                            # print(leng[k])
-                            plpnt = chainpath.Coordinates[(k * 2):(k * 2 + 2)]
-                            plpnt = tc.vtpnt(plpnt[0], plpnt[1])
-                            angpl = self.doc.Utility.AngleFromXAxis(plpnt, inspnt)
-                            if jj == 1:  # 判断是否为第一个插入点
-                                if i[0] < chainpath.Coordinates[k * 2]:  # 起始向左
-                                    mirmark = 1
-                                else:
-                                    mirmark = 0  # 起始向右
-                            break
-                    angdif = []
-                    for k in range(len(angbr)):
-                        angabs = abs(angbr[k] - angpl)
-                        if angabs > math.pi:
-                            angabs = math.pi * 2 - angabs
-                        angdif.append(angabs)
-                    angmin = min(angdif)
-                    index1 = angdif.index(angmin)
-                    if cardir == 1:  # 工件向右
-                        a = angbr[index1]
-                        chainplate1 = self.msp.InsertBlock(inspnt, chainplate.Name, 1, 1, 1, a)
-                        if mirmark == 1:  # 起始向左
-                            fstpnt = tc.vtpnt(intpnts[index1 * 3], intpnts[index1 * 3 + 1])
-                            chainplate1.Mirror(fstpnt, inspnt)
-                            chainplate1.Delete()
-                    else:  # 工件向左
-                        if angbr[index1] < math.pi:
-                            a = angbr[index1] + math.pi
-                        else:
-                            a = angbr[index1] - math.pi
-                        chainplate1 = self.msp.InsertBlock(inspnt, chainplate.Name, 1, 1, 1, a)
-                        if mirmark == 0:  # 起始向右
-                            fstpnt = tc.vtpnt(intpnts[index1 * 3], intpnts[index1 * 3 + 1])
-                            chainplate1.Mirror(fstpnt, inspnt)
-                            chainplate1.Delete()
-                    circlebr.Delete()
+                        nowdist = (j - 1) * float(step) + self.frtstep - (num - 1) * float(pitch)
+                        inspnt0 = self.getdistpt(chainpath, self.leng, nowdist, inspnt0, float(pitch))
+                    self.find_insertpnt(chainpath, step, bracing, pitch, inspnt0, num, i, j, jj)
+                    self.insert_block(carbody, car, num, cardir)
+                    self.circlebr.Delete()
+                if select % 10 == 2:
+                    self.animation_next_or_copy(car)
             j += 1
-        for lay in layerobjs:
+        for lay in self.layerobjs:
             lay.LayerOn = True  # 打开图层
         self.doc.ActiveLayer = self.doc.Layers("0")
-
-    def do_pendulum_load_animation(self, cardir, chainplate, fswing, bswing, block, pline, steppnt, step, bracing,
-                                   carnum, pitch):
-        """摆杆 - 工艺段 - 仿真动画"""
-        pass
 
     def do_pendulum_diptank(self, swing):
         """摆杆 - 浸入即出槽分析"""
@@ -135,156 +62,90 @@ class DoPath:
 
     def do_2trolley(self, select, cardir, carbody, chainpath, step, bracing, carnum, pitch):
         """台车 - 轨迹/动画"""
-        self.steppnt = self.pathpnt(chainpath, step)
-        layerobjs = self.createlayer()
-        for lay in layerobjs:
+        steppnt = self.pathpnt(chainpath, step)
+        for lay in self.layerobjs:
             lay.LayerOn = False  # 关闭图层
-        leng = self.pline_length(chainpath)
-        j = 1
-        jj = 0  # 判断是否为第一个插入点
-        frtstep = self.frtsteppnt(chainpath, self.steppnt, step, leng)
-        self.insertmt(select, leng, step, pitch, chainpath)
+        self.leng = self.pline_length(chainpath)
+        self.frtstep = self.frtsteppnt(chainpath, steppnt, step, self.leng)
         if select % 10 == 1:
-            self.do_2trolley_path(cardir, carbody, chainpath, self.steppnt, step, bracing)
+            inserttext = "轨道长度：" + str(int(self.leng[-1])) + "mm\n" + "轨迹步长：" + step + "mm"
         else:
-            self.do_2trolley_animation(cardir, carbody, chainpath, self.steppnt, step, bracing, carnum, pitch)
-
-    def do_2trolley_path(self, cardir, carbody, chainpath, steppnt, step, bracing):
-        """2台车 - 绘制轨迹"""
-        for i in steppnt:
-            if ((j - 1) * float(step) + frtstep) > float(bracing):
-                # print((j - 1) * float(step) + frtstep)
-                layernum = (j - 1) % len(clrnums)
-                self.doc.ActiveLayer = self.doc.Layers(layernames[layernum])
-                inspnt = tc.vtpnt(i[0], i[1])
-                circlebr = self.msp.AddCircle(inspnt, float(bracing))
-                time.sleep(0.1)
-                intpnts = chainpath.IntersectWith(circlebr, 0)
-                angbr = []
-                for k in range(len(intpnts) // 3):
-                    brpnt = tc.vtpnt(intpnts[k * 3], intpnts[k * 3 + 1])
-                    angbr.append(self.doc.Utility.AngleFromXAxis(brpnt, inspnt))
-                for k in range(len(leng)):
-                    if ((j - 1) * float(step) + frtstep) < leng[k]:
-                        jj += 1
-                        # print(leng[k])
-                        plpnt = chainpath.Coordinates[(k * 2):(k * 2 + 2)]
-                        plpnt = tc.vtpnt(plpnt[0], plpnt[1])
-                        angpl = self.doc.Utility.AngleFromXAxis(plpnt, inspnt)
-                        if jj == 1:  # 判断是否为第一个插入点
-                            if i[0] < chainpath.Coordinates[k * 2]:  # 起始向左
-                                mirmark = 1
-                            else:
-                                mirmark = 0  # 起始向右
-                        break
-                angdif = []
-                for k in range(len(angbr)):
-                    angabs = abs(angbr[k] - angpl)
-                    if angabs > math.pi:
-                        angabs = math.pi * 2 - angabs
-                    angdif.append(angabs)
-                angmin = min(angdif)
-                index1 = angdif.index(angmin)
-                if cardir == 1:  # 工件向右
-                    a = angbr[index1]
-                    car1 = self.msp.InsertBlock(inspnt, carbody.Name, 1, 1, 1, a)
-                    if mirmark == 1:  # 起始向左
-                        fstpnt = tc.vtpnt(intpnts[index1 * 3], intpnts[index1 * 3 + 1])
-                        car1.Mirror(fstpnt, inspnt)
-                        car1.Delete()
-                else:  # 工件向左
-                    if angbr[index1] < math.pi:
-                        a = angbr[index1] + math.pi
-                    else:
-                        a = angbr[index1] - math.pi
-                    car1 = self.msp.InsertBlock(inspnt, carbody.Name, 1, 1, 1, a)
-                    if mirmark == 0:  # 起始向右
-                        fstpnt = tc.vtpnt(intpnts[index1 * 3], intpnts[index1 * 3 + 1])
-                        car1.Mirror(fstpnt, inspnt)
-                        car1.Delete()
-                circlebr.Delete()
-            j += 1
-        for lay in layerobjs:
-            lay.LayerOn = True  # 打开图层
-        self.doc.ActiveLayer = self.doc.Layers("0")
-
-    def do_2trolley_animation(self, cardir, carbody, chainpath, steppnt, step, bracing, carnum, pitch):
-        """2台车 - 仿真动画"""
+            inserttext = "轨道长度：" + str(int(self.leng[-1])) + "mm\n" + "工件节距：" + pitch + "mm"
+        self.insertmt(chainpath, inserttext)
+        j = 1
+        jj = 0  # 判断是否为第一次插入
         for i in steppnt:
             car = [carbody] * int(carnum)
-            if ((j - 1) * float(step) + frtstep) > ((int(carnum) - 1) * float(pitch) + float(bracing)):
-                # print((j - 1) * float(step.get()) + frtstep)
-                for num in range(int(carnum.get())):
-                    layernum = num % len(clrnums)
-                    self.doc.ActiveLayer = self.doc.Layers(layernames[layernum])
+            if ((j - 1) * float(step) + self.frtstep) > ((int(carnum) - 1) * float(pitch) + float(bracing)):
+                # print((j - 1) * float(step.get()) + self.frtstep)
+                for num in range(int(carnum)):
+                    layernum = num % len(self.layerobjs)
+                    self.doc.ActiveLayer = self.doc.Layers(self.layerobjs[layernum].Name)
                     if num == 0:
                         inspnt0 = i
                     else:
-                        nowdist = (j - 1) * float(step) + frtstep - (num - 1) * float(pitch)
-                        inspnt0 = self.getdistpt(chainpath, leng, nowdist, inspnt0, float(pitch))
-                    inspnt = tc.vtpnt(inspnt0[0], inspnt0[1])
-                    circlebr = self.msp.AddCircle(inspnt, float(bracing))
-                    intpnts = chainpath.IntersectWith(circlebr, 0)
-                    angbr = []
-                    for k in range(len(intpnts) // 3):
-                        brpnt = tc.vtpnt(intpnts[k * 3], intpnts[k * 3 + 1])
-                        angbr.append(self.doc.Utility.AngleFromXAxis(brpnt, inspnt))
-                    for k in range(len(leng)):
-                        if ((j - 1) * float(step.get()) + frtstep - num * float(pitch)) < leng[k]:
-                            jj += 1
-                            # print(leng[k])
-                            plpnt = chainpath.Coordinates[(k * 2):(k * 2 + 2)]
-                            plpnt = tc.vtpnt(plpnt[0], plpnt[1])
-                            angpl = self.doc.Utility.AngleFromXAxis(plpnt, inspnt)
-                            if jj == 1:  # 判断是否为第一个插入点
-                                if i[0] < chainpath.Coordinates[k * 2]:  # 起始向左
-                                    mirmark = 1
-                                else:
-                                    mirmark = 0  # 起始向右
-                            break
-                    angdif = []
-                    for k in range(len(angbr)):
-                        angabs = abs(angbr[k] - angpl)
-                        if angabs > math.pi:
-                            angabs = math.pi * 2 - angabs
-                        angdif.append(angabs)
-                    angmin = min(angdif)
-                    index1 = angdif.index(angmin)
-                    if cardir == 1:  # 工件向右
-                        a = angbr[index1]
-                        car[num] = self.msp.InsertBlock(inspnt, carbody.Name, 1, 1, 1, a)
-                        if mirmark == 1:  # 起始向左
-                            fstpnt = vtpnt(intpnts[index1 * 3], intpnts[index1 * 3 + 1])
-                            car1 = car[num].Mirror(fstpnt, inspnt)
-                            car[num].Delete()
-                            car[num] = car1
-                    else:  # 工件向左
-                        if angbr[index1] < math.pi:
-                            a = angbr[index1] + math.pi
-                        else:
-                            a = angbr[index1] - math.pi
-                        car[num] = self.msp.InsertBlock(inspnt, carbody.Name, 1, 1, 1, a)
-                        if mirmark == 0:  # 起始向右
-                            fstpnt = vtpnt(intpnts[index1 * 3], intpnts[index1 * 3 + 1])
-                            car1 = car[num].Mirror(fstpnt, inspnt)
-                            car[num].Delete()
-                            car[num] = car1
-                    circlebr.Delete()
-                for lay in layerobjs:
-                    lay.LayerOn = True  # 打开图层
-                # 选择是否保留当前结果
-                self.doc.Utility.InitializeUserInput(0, "C, c")
-                doconti = 'a'
-                while doconti.lower() != 'c' and doconti != '':
-                    doconti = self.doc.Utility.GetKeyword("继续仿真下一工件位置或 [保留当前工件位置(C)]: ")
-                time.sleep(0.3)
-                if doconti == '':
-                    for eachcar in car:
-                        eachcar.Delete()
-                for lay in layerobjs:
-                    lay.LayerOn = False  # 关闭图层
+                        nowdist = (j - 1) * float(step) + self.frtstep - (num - 1) * float(pitch)
+                        inspnt0 = self.getdistpt(chainpath, self.leng, nowdist, inspnt0, float(pitch))
+                    self.find_insertpnt(chainpath, step, bracing, pitch, inspnt0, num, i, j, jj)
+                    self.insert_block(carbody, car, num, cardir)
+                    self.circlebr.Delete()
+                if select % 10 == 2:
+                    self.animation_next_or_copy(car)
             j += 1
+        for lay in self.layerobjs:
+            lay.LayerOn = True  # 打开图层
         self.doc.ActiveLayer = self.doc.Layers("0")
+
+    def find_insertpnt(self, chainpath, step, bracing, pitch, inspnt0, num, i, j, jj):
+        self.inspnt = Tc.vtpnt(inspnt0[0], inspnt0[1])
+        self.circlebr = self.msp.AddCircle(self.inspnt, float(bracing))
+        self.intpnts = chainpath.IntersectWith(self.circlebr, 0)
+        self.angbr = []
+        for k in range(len(self.intpnts) // 3):
+            brpnt = Tc.vtpnt(self.intpnts[k * 3], self.intpnts[k * 3 + 1])
+            self.angbr.append(self.doc.Utility.AngleFromXAxis(brpnt, self.inspnt))
+        for k in range(len(self.leng)):
+            if ((j - 1) * float(step) + self.frtstep - num * float(pitch)) < self.leng[k]:
+                jj += 1
+                # print(leng[k])
+                plpnt = chainpath.Coordinates[(k * 2):(k * 2 + 2)]
+                plpnt = Tc.vtpnt(plpnt[0], plpnt[1])
+                angpl = self.doc.Utility.AngleFromXAxis(plpnt, self.inspnt)
+                if jj == 1:  # 判断是否为第一次插入
+                    if i[0] < chainpath.Coordinates[k * 2]:  # 起始向左
+                        self.mirmark = 1
+                    else:
+                        self.mirmark = 0  # 起始向右
+                break
+        angdif = []
+        for k in range(len(self.angbr)):
+            angabs = abs(self.angbr[k] - angpl)
+            if angabs > math.pi:
+                angabs = math.pi * 2 - angabs
+            angdif.append(angabs)
+        self.index = angdif.index(min(angdif))
+
+    def insert_block(self, carbody, car, num, cardir):
+        """插入块并调整角度"""
+        if cardir == 1:  # 工件向右
+            a = self.angbr[self.index]
+            car[num] = self.msp.InsertBlock(self.inspnt, carbody.Name, 1, 1, 1, a)
+            if self.mirmark == 1:  # 起始向左
+                fstpnt = Tc.vtpnt(self.intpnts[self.index * 3], self.intpnts[self.index * 3 + 1])
+                car1 = car[num].Mirror(fstpnt, self.inspnt)
+                car[num].Delete()
+                car[num] = car1
+        else:  # 工件向左
+            if self.angbr[self.index] < math.pi:
+                a = self.angbr[self.index] + math.pi
+            else:
+                a = self.angbr[self.index] - math.pi
+            car[num] = self.msp.InsertBlock(self.inspnt, carbody.Name, 1, 1, 1, a)
+            if self.mirmark == 0:  # 起始向右
+                fstpnt = Tc.vtpnt(self.intpnts[self.index * 3], self.intpnts[self.index * 3 + 1])
+                car1 = car[num].Mirror(fstpnt, self.inspnt)
+                car[num].Delete()
+                car[num] = car1
 
     def pathpnt(self, pline, step):
         """沿轨道线按步长求插入点"""
@@ -306,8 +167,8 @@ class DoPath:
         self.doc.SendCommand(handle_str)
         filterType = [8]  # 定义过滤类型
         filterData = ["Path_pnt"]  # 设置过滤参数
-        filterType = tc.vtint(filterType)
-        filterData = tc.vtvariant(filterData)
+        filterType = Tc.vtint(filterType)
+        filterData = Tc.vtvariant(filterData)
         slt.Select(5, 0, 0, filterType, filterData)  # 实现过滤
         steppnt = [1] * len(slt)
         for i in range(len(slt)):
@@ -345,8 +206,8 @@ class DoPath:
                 else:
                     pline1 = pline.Explode()
                     centpnt = pline1[vertex].Center  # 圆弧圆心坐标
-                    centpnt = tc.vtpnt(centpnt[0], centpnt[1])
-                    startpnt = tc.vtpnt(pline.Coordinates[vertex * 2],
+                    centpnt = Tc.vtpnt(centpnt[0], centpnt[1])
+                    startpnt = Tc.vtpnt(pline.Coordinates[vertex * 2],
                                         pline.Coordinates[vertex * 2 + 1])
                     ray = self.msp.AddRay(centpnt, startpnt)
                     arcang = pline1[vertex].TotalAngle  # 圆弧弧度
@@ -372,24 +233,36 @@ class DoPath:
             layerobjs[i].color = clrnums[i]
         return layerobjs
 
-    def insertmt(self, select, leng, step, pitch, chainpath):
+    def insertmt(self, chainpath, inserttext):
         """绘制轨迹/仿真时，在轨道线上方插入文字说明"""
-        if select % 10 == 1:
-            inserttext = "轨道长度：" + str(int(leng[-1])) + "mm\n" + "轨迹步长：" + step + "mm"
-        else:
-            inserttext = "轨道长度：" + str(int(leng[-1])) + "mm\n" + "工件节距：" + pitch + "mm"
-        textpnt = tc.vtpnt((chainpath.Coordinates[0] + chainpath.Coordinates[-2]) / 2,
+        textpnt = Tc.vtpnt((chainpath.Coordinates[0] + chainpath.Coordinates[-2]) / 2 + 1500,
                            max(chainpath.Coordinates[1], chainpath.Coordinates[-1]) + 3000)
         mt = self.msp.AddMText(textpnt, 3000, inserttext)
         mt.Height = 200
         mt.styleName = 'STANDARD'
 
+    def animation_next_or_copy(self, block):
+        """生成一组仿真后，选择继续仿真/保留当前结果"""
+        for lay in self.layerobjs:
+            lay.LayerOn = True  # 打开图层
+        # 选择是否保留当前结果
+        self.doc.Utility.InitializeUserInput(0, "C, c")
+        doconti = 'a'
+        while doconti.lower() != 'c' and doconti != '':
+            doconti = self.doc.Utility.GetKeyword("继续仿真下一工件位置或 [保留当前工件位置(C)]: ")
+        time.sleep(0.3)
+        if doconti == '':
+            for eachblock in block:
+                eachblock.Delete()
+        for lay in self.layerobjs:
+            lay.LayerOn = False  # 关闭图层
+
     @staticmethod
-    def pline_length(pline1):
+    def pline_length(pline):
         """求轨道线各段长度"""
         leng = []
-        pline2 = pline1.Explode()
-        for i in pline2:
+        pline1 = pline.Explode()
+        for i in pline1:
             if 'Arc' in i.ObjectName:
                 leng.append(i.ArcLength)
             else:
@@ -413,4 +286,3 @@ class DoPath:
         else:
             frtstep = leng[-1] - len(steppnt) * float(step)
         return frtstep
-    

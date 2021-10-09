@@ -20,7 +20,7 @@ class CallBacks:
         wincad = win32com.client.Dispatch("AutoCAD.Application")
         self.doc = wincad.ActiveDocument
         time.sleep(0.1)
-        self.doc.Utility.Prompt("Hello! Autocad from pywin32com.\n")
+        self.doc.Utility.Prompt("Hello! AutoPath from LZH.\n")
         time.sleep(0.1)
         self.msp = self.doc.ModelSpace
         self.oop = oop

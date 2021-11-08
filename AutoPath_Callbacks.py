@@ -17,7 +17,7 @@ from AutoPath_PathWidgets import PathWidgets
 # =========================================================
 class CallBacks:
     def __init__(self, oop):
-        wincad = win32com.client.Dispatch("AutoCAD.Application")
+        wincad = win32com.client.Dispatch("AutoCAD.Application.22")
         self.doc = wincad.ActiveDocument
         time.sleep(0.1)
         self.doc.Utility.Prompt("Hello! AutoPath from LZH.\n")

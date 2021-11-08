@@ -56,11 +56,11 @@ class PathWidgets:
         # Add a Tooltip_提示框
         tt.create_tooltip(l_dir, '工件块、链板块与摆杆块方向需一致')
         # Add Radiobutton_选择工件方向
-        self.dir_value = tk.IntVar()
-        self.dir_value.set(1)
+        self.dirvalue = tk.IntVar()
+        self.dirvalue.set(1)
         cardirs = {'右': 1, '左': 2}
         for cardir, cardir_num in cardirs.items():
-            rb_dir = ttk.Radiobutton(tab2_frame1, text=cardir, value=cardir_num, variable=self.dir_value)
+            rb_dir = ttk.Radiobutton(tab2_frame1, text=cardir, value=cardir_num, variable=self.dirvalue)
             rb_dir.grid(column=cardir_num, row=5)
 
         if select % 10 == 1 or select % 10 == 2:
@@ -106,18 +106,20 @@ class PathWidgets:
         # Add a Entry_链板节距
         self.chainbracing = tk.StringVar()
         ttk.Entry(tab2_frame2, width=12, textvariable=self.chainbracing).grid(column=1, row=0)
+        self.chainbracing.set(250)
 
         # Add a Label_摆杆间距
         ttk.Label(tab2_frame2, text='摆杆间距(mm): ').grid(column=0, row=1)
         self.bracing = tk.StringVar()
         # Add a Entry_摆杆间距
         ttk.Entry(tab2_frame2, width=12, textvariable=self.bracing).grid(column=1, row=1)
+        self.bracing.set(3250)
 
         # Add a Label_摆杆长度
         l_swingleng = tk.Label(tab2_frame2, text='摆杆长度(mm): ')
         l_swingleng.grid(column=0, row=2)
         # Add a Tooltip_提示框
-        tt.create_tooltip(l_swingleng, '套筒中心至橇碗中心距离')
+        tt.create_tooltip(l_swingleng, '套筒中心至摆杆底部圆管中心距离')
         # Add a Entry_摆杆长度
         self.swingleng = tk.StringVar()
         ttk.Entry(tab2_frame2, width=12, textvariable=self.swingleng).grid(column=1, row=2)
@@ -146,8 +148,10 @@ class PathWidgets:
         if select % 10 == 1:
             l_num.configure(state='disabled')
             e_num.configure(state='disabled')
+            self.carnum.set(1)
             l_pitch.configure(state='disabled')
             e_pitch.configure(state='disabled')
+            self.pitch.set(0)
 
         for child in tab2_frame2.winfo_children():
             child.grid_configure(sticky=tk.W, padx=8, pady=4)
@@ -205,10 +209,14 @@ class PathWidgets:
         tab2_frame5 = ttk.LabelFrame(self.tab2, text='')
         tab2_frame5.grid(column=0, row=5, columnspan=2)
         self.b_entry = ttk.Button(tab2_frame5, text='确定',
-                                  command=lambda: self.doPath.do_pendulum(select, self.dir_value, self.chainpath,
-                                                                          self.step.get(), self.chainbracing.get(),
-                                                                          self.bracing.get(), self.carnum,
-                                                                          self.pitch.get()))
+                                  command=lambda: self.doPath.do_pendulum(select, self.dirvalue.get(),
+                                                                          self.swingstate_value.get(), self.chainpath,
+                                                                          self.step.get(),
+                                                                          float(self.chainbracing.get()),
+                                                                          float(self.bracing.get()),
+                                                                          int(self.carnum.get()),
+                                                                          float(self.pitch.get()),
+                                                                          float(self.swingleng.get()) - 252.75))
         self.b_entry.grid(column=0, row=0, padx=20, pady=8)
         self.b_quit = ttk.Button(tab2_frame5, text='退出', command=self.oop.quit)
         self.b_quit.grid(column=1, row=0, padx=20, pady=8)
@@ -236,11 +244,11 @@ class PathWidgets:
         # Add a Label_选择工件方向
         ttk.Label(tab2_frame1, text='工件块方向: ').grid(column=0, row=2)
         # Add a Radiobutton_选择工件方向
-        self.cardir_value = tk.IntVar()
-        self.cardir_value.set(1)
-        cardirs = {'右': 1, '左': 2}
-        for cardir, cardir_num in cardirs.items():
-            a31 = ttk.Radiobutton(tab2_frame1, text=cardir, value=cardir_num, variable=self.cardir_value)
+        self.dirvalue = tk.IntVar()
+        self.dirvalue.set(1)
+        dirs = {'右': 1, '左': 2}
+        for cardir, cardir_num in dirs.items():
+            a31 = ttk.Radiobutton(tab2_frame1, text=cardir, value=cardir_num, variable=self.dirvalue)
             a31.grid(column=cardir_num, row=2)
 
         for child in tab2_frame1.winfo_children():
@@ -292,10 +300,11 @@ class PathWidgets:
         tab2_frame3 = ttk.LabelFrame(self.tab2, text='')
         tab2_frame3.grid(column=0, row=1, columnspan=2)
         self.b_entry = ttk.Button(tab2_frame3, text='确定',
-                                  command=lambda: self.doPath.do_2trolley(select, self.cardir_value, self.carbody,
+                                  command=lambda: self.doPath.do_2trolley(select, self.dirvalue.get(), self.car_name,
                                                                           self.chainpath, self.step.get(),
-                                                                          self.bracing.get(), self.carnum.get(),
-                                                                          self.pitch.get()))
+                                                                          float(self.bracing.get()),
+                                                                          int(self.carnum.get()),
+                                                                          float(self.pitch.get())))
         self.b_entry.grid(column=0, row=0, padx=20, pady=8)
         self.b_quit = ttk.Button(tab2_frame3, text='退出', command=self.oop.quit)
         self.b_quit.grid(column=1, row=0, padx=20, pady=8)
@@ -313,7 +322,7 @@ class PathWidgets:
             block = self.doc.Utility.GetEntity()
             time.sleep(0.1)
         if block_name == 'car':
-            self.carbody = block[0]
+            self.car_name = block[0].Name
             self.b_choose_car.configure(style='G.TButton', text='已选择')
         # elif block_name == 'chainplate':
         #     self.chainplate = block[0]

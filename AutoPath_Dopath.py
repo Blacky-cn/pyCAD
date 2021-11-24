@@ -23,9 +23,10 @@ class DoPath:
     def do_pendulum(self, select, dirvalue, swingstate_value, chainpath, step, chainbracing, bracing, carnum, pitch,
                     swingleng):
         """摆杆 - 轨迹/动画"""
+        self.dirvalue = dirvalue
         steppnt = self.pathpnt(chainpath, step)
-        # for lay in self.layerobjs:
-        #     lay.LayerOn = False  # 关闭图层
+        for lay in self.layerobjs:
+            lay.LayerOn = False  # 关闭图层
         self.leng = self.pline_length(chainpath)
         self.frtstep = self.frtsteppnt(chainpath, steppnt, step, self.leng)
         if select % 10 == 1:
@@ -42,37 +43,30 @@ class DoPath:
             fswing = []
             bswing = []
             car = []
-            if ((self.j - 1) * float(step) + self.frtstep) > (
-                    (carnum - 1) * pitch + bracing + 2 * chainbracing):
-                # print((j - 1) * float(step.get()) + self.frtstep)
+            if ((self.j - 1) * float(step) + self.frtstep) > ((carnum - 1) * pitch + bracing + 2 * chainbracing):
                 for num in range(carnum):
-                    layernum = num % len(self.layerobjs)
+                    layernum = self.j % len(self.layerobjs)
                     self.doc.ActiveLayer = self.doc.Layers(self.layerobjs[layernum].Name)
-                    nowdist = (self.j - 1) * float(step) + self.frtstep - (num - 1) * pitch
+                    nowdist = (self.j - 1) * float(step) + self.frtstep
                     if num == 0:
                         inspnt0 = i
                     else:
-                        inspnt0 = self.find_distpnt(chainpath, self.leng, nowdist, inspnt0, pitch)
+                        inspnt0 = self.find_distpnt(chainpath, self.leng, nowdist, inspnt0, num * pitch)
                     self.swingpnt = []
                     for swingnum in range(2):
+                        if swingnum == 0:
+                            inspnt1 = inspnt0
                         if swingnum == 1:
-                            inspnt0 = self.find_distpnt(chainpath, self.leng, nowdist, inspnt0, bracing)
-                        self.find_insertpnt(chainpath, step, chainbracing, bracing, inspnt0, swingnum, i)
-                        self.insert_block('ChainPlate', chainplate, swingnum, dirvalue)
+                            inspnt1 = self.find_distpnt(chainpath, self.leng, nowdist - num * pitch, inspnt0, bracing)
+                        self.find_insertpnt(chainpath, step, chainbracing, nowdist - num * pitch - swingnum * bracing,
+                                            inspnt1, i)
+                        self.insert_block('ChainPlate', chainplate, swingnum)
                         self.circlebr.Delete()
-                        self.swingpnt.append(self.find_isotrianglepnt(inspnt0))
+                        self.swingpnt.append(self.find_isotrianglepnt(inspnt1))
                         if swingnum == 0 and swingstate_value == 1:  # 前摆杆竖直
-                            swingpnt0 = Tc.vtpnt(self.swingpnt[0][0], self.swingpnt[0][1])
-                            fswing.append(self.msp.InsertBlock(swingpnt0, 'FSwing', 1, 1, 1, 0))
-                            car_fpnt0 = [self.swingpnt[0][0], self.swingpnt[0][1] - swingleng]
-                            car_fpnt = Tc.vtpnt(car_fpnt0[0], car_fpnt0[1])
-                            self.circlecar = self.msp.AddCircle(car_fpnt, bracing)
+                            self.insert_swing(fswing, self.swingpnt[0], swingleng, bracing, 'FSwing')
                         elif swingnum == 1 and swingstate_value == 2:  # 后摆杆竖直
-                            swingpnt0 = Tc.vtpnt(self.swingpnt[1][0], self.swingpnt[1][1])
-                            bswing.append(self.msp.InsertBlock(swingpnt0, 'BSwing', 1, 1, 1, 0))
-                            car_bpnt0 = [self.swingpnt[1][0], self.swingpnt[1][0] - swingleng]
-                            car_bpnt = Tc.vtpnt(car_bpnt0[0], car_bpnt0[1])
-                            self.circlecar = self.msp.AddCircle(car_bpnt, bracing)
+                            self.insert_swing(bswing, self.swingpnt[1], swingleng, bracing, 'BSwing')
                         else:
                             swingpnt0 = Tc.vtpnt(self.swingpnt[-1][0], self.swingpnt[-1][1])
                             self.circleswing = self.msp.AddCircle(swingpnt0, swingleng)
@@ -95,9 +89,10 @@ class DoPath:
 
     def do_2trolley(self, select, dirvalue, car_name, chainpath, step, bracing, carnum, pitch):
         """台车 - 轨迹/动画"""
+        self.dirvalue = dirvalue
         steppnt = self.pathpnt(chainpath, step)
-        # for lay in self.layerobjs:
-        #     lay.LayerOn = False  # 关闭图层
+        for lay in self.layerobjs:
+            lay.LayerOn = False  # 关闭图层
         self.leng = self.pline_length(chainpath)
         self.frtstep = self.frtsteppnt(chainpath, steppnt, step, self.leng)
         if select % 10 == 1:
@@ -110,17 +105,16 @@ class DoPath:
         for i in steppnt:
             car = []
             if ((self.j - 1) * float(step) + self.frtstep) > ((carnum - 1) * pitch + bracing):
-                # print((j - 1) * float(step.get()) + self.frtstep)
                 for num in range(carnum):
                     layernum = num % len(self.layerobjs)
                     self.doc.ActiveLayer = self.doc.Layers(self.layerobjs[layernum].Name)
-                    nowdist = (self.j - 1) * float(step) + self.frtstep - (num - 1) * pitch
+                    nowdist = (self.j - 1) * float(step) + self.frtstep
                     if num == 0:
                         inspnt0 = i
                     else:
-                        inspnt0 = self.find_distpnt(chainpath, self.leng, nowdist, inspnt0, pitch)
-                    self.find_insertpnt(chainpath, step, bracing, pitch, inspnt0, num, i)
-                    self.insert_block(car_name, car, num, dirvalue)
+                        inspnt0 = self.find_distpnt(chainpath, self.leng, nowdist, inspnt0, num * pitch)
+                    self.find_insertpnt(chainpath, step, bracing, nowdist - num * pitch, inspnt0, i)
+                    self.insert_block(car_name, car, num)
                     self.circlebr.Delete()
                 if select % 10 == 2:
                     self.animation_next_or_copy(car)
@@ -129,7 +123,7 @@ class DoPath:
             lay.LayerOn = True  # 打开图层
         self.doc.ActiveLayer = self.doc.Layers("0")
 
-    def find_insertpnt(self, chainpath, step, bracing, pitch, inspnt0, num, i):
+    def find_insertpnt(self, chainpath, step, bracing, nowdist, inspnt0, i):
         self.inspnt = Tc.vtpnt(inspnt0[0], inspnt0[1])
         self.circlebr = self.msp.AddCircle(self.inspnt, bracing)
         self.intpnts = chainpath.IntersectWith(self.circlebr, 0)
@@ -140,7 +134,7 @@ class DoPath:
             self.angbr.append(
                 self.doc.Utility.AngleFromXAxis(Tc.vtpnt(self.brpnt[-1][0], self.brpnt[-1][1]), self.inspnt))
         for k in range(len(self.leng)):
-            if ((self.j - 1) * float(step) + self.frtstep - num * pitch) < self.leng[k]:
+            if nowdist < self.leng[k]:
                 self.jj += 1
                 # print(leng[k])
                 plpnt = chainpath.Coordinates[(k * 2):(k * 2 + 2)]
@@ -160,9 +154,9 @@ class DoPath:
             angdif.append(angabs)
         self.index = angdif.index(min(angdif))
 
-    def insert_block(self, block_name, blocklist, num, dirvalue):
+    def insert_block(self, block_name, blocklist, num):
         """插入块并调整角度"""
-        if dirvalue == 1:  # 工件向右
+        if self.dirvalue == 1:  # 工件向右
             a = self.angbr[self.index]
             blocklist.append(self.msp.InsertBlock(self.inspnt, block_name, 1, 1, 1, a))
             if self.mirmark == 1:  # 起始向左
@@ -182,7 +176,18 @@ class DoPath:
                 blocklist[num].Delete()
                 blocklist[num] = car1
 
+    def insert_swing(self, swinglist, swingpnt, swingleng, bracing, swing_name):
+        """插入摆杆"""
+        swingpnt0 = Tc.vtpnt(swingpnt[0], swingpnt[1])
+        swingpnt1 = Tc.vtpnt(swingpnt[0], swingpnt[1] + 1)
+        swinglist.append(self.msp.InsertBlock(swingpnt0, swing_name, 1, 1, 1, 0))
+        self.mirror_block(swingpnt0, swingpnt1, swinglist)
+        car_fpnt0 = [swingpnt[0], swingpnt[1] - swingleng]
+        car_fpnt = Tc.vtpnt(car_fpnt0[0], car_fpnt0[1])
+        self.circlecar = self.msp.AddCircle(car_fpnt, bracing)
+
     def insert_car(self, state_value, blocklist0, blocklist1, block_name='Skid&Body'):
+        """插入工件及另一根摆杆"""
         car_pnt = self.circlecar.IntersectWith(self.circleswing, 0)
         car_pntdif = []
         for k in range(len(car_pnt) // 3):
@@ -198,13 +203,24 @@ class DoPath:
             car_angle = self.doc.Utility.AngleFromXAxis(car_inspnt0, car_inspnt1)
             swing_angel = self.doc.Utility.AngleFromXAxis(bswing_pnt, car_inspnt1)
             blocklist0.append(self.msp.InsertBlock(car_inspnt0, block_name, 1, 1, 1, car_angle))
-            blocklist1.append(self.msp.InsertBlock(bswing_pnt, 'BSwing', 1, 1, 1, math.pi * 3 / 2 - swing_angel))
+            self.mirror_block(car_inspnt0, car_inspnt1, blocklist0)
+            blocklist1.append(self.msp.InsertBlock(bswing_pnt, 'BSwing', 1, 1, 1, swing_angel - math.pi * 3 / 2))
+            self.mirror_block(bswing_pnt, car_inspnt1, blocklist1)
         else:  # 后摆杆竖直，以circlecar与circleswing交点为插入点，第二点为circlecar圆心
             fswing_pnt = Tc.vtpnt(self.swingpnt[0][0], self.swingpnt[0][1])
             car_angle = self.doc.Utility.AngleFromXAxis(car_inspnt1, car_inspnt0)
-            swing_angel = self.doc.Utility.AngleFromXAxis(fswing_pnt, car_inspnt0)
+            swing_angel = self.doc.Utility.AngleFromXAxis(fswing_pnt, car_inspnt1)
             blocklist0.append(self.msp.InsertBlock(car_inspnt1, block_name, 1, 1, 1, car_angle))
-            blocklist1.append(self.msp.InsertBlock(fswing_pnt, 'FSwing', 1, 1, 1, math.pi * 3 / 2 - swing_angel))
+            self.mirror_block(car_inspnt1, car_inspnt0, blocklist0)
+            blocklist1.append(self.msp.InsertBlock(fswing_pnt, 'FSwing', 1, 1, 1, swing_angel - math.pi * 3 / 2))
+            self.mirror_block(fswing_pnt, car_inspnt1, blocklist1)
+
+    def mirror_block(self, blockpnt0, blockpnt1, blocklist):
+        """若工件方向与轨迹起始方向相反，则镜像摆杆、工件"""
+        if (self.dirvalue == 1 and self.mirmark == 1) or (self.dirvalue == 2 and self.mirmark == 0):
+            block_mirror = blocklist[-1].Mirror(blockpnt0, blockpnt1)
+            blocklist[-1].Delete()
+            blocklist[-1] = block_mirror
 
     def pathpnt(self, pline, step):
         """沿轨道线按步长求插入点"""
@@ -284,6 +300,7 @@ class DoPath:
         return sndpnt
 
     def find_isotrianglepnt(self, inspnt0, height=140, direction=0):
+        """已知等腰三角形两底角坐标和高，求顶角坐标"""
         frtpnt = [inspnt0[0], inspnt0[1]]
         sndpnt = self.brpnt[self.index]
         if direction == 0:
@@ -293,8 +310,13 @@ class DoPath:
             elif frtpnt[1] == sndpnt[1]:
                 trdpnt_x = (frtpnt[0] + sndpnt[0]) / 2
                 trdpnt_y = frtpnt[1] - height
-            else:
+            elif (frtpnt[0] < sndpnt[0] and frtpnt[1] < sndpnt[1]) or (frtpnt[0] > sndpnt[0] and frtpnt[1] > sndpnt[1]):
                 trdpnt_x = (frtpnt[0] + sndpnt[0]) / 2 + height / (
+                        ((sndpnt[0] - frtpnt[0]) / (sndpnt[1] - frtpnt[1])) ** 2 + 1) ** 0.5
+                trdpnt_y = (frtpnt[1] + sndpnt[1]) / 2 - height / (
+                        ((sndpnt[1] - frtpnt[1]) / (sndpnt[0] - frtpnt[0])) ** 2 + 1) ** 0.5
+            else:
+                trdpnt_x = (frtpnt[0] + sndpnt[0]) / 2 - height / (
                         ((sndpnt[0] - frtpnt[0]) / (sndpnt[1] - frtpnt[1])) ** 2 + 1) ** 0.5
                 trdpnt_y = (frtpnt[1] + sndpnt[1]) / 2 - height / (
                         ((sndpnt[1] - frtpnt[1]) / (sndpnt[0] - frtpnt[0])) ** 2 + 1) ** 0.5
@@ -305,8 +327,13 @@ class DoPath:
             elif frtpnt[1] == sndpnt[1]:
                 trdpnt_x = (frtpnt[0] + sndpnt[0]) / 2
                 trdpnt_y = frtpnt[1] + height
-            else:
+            elif frtpnt[0] < sndpnt[0] and frtpnt[1] < sndpnt[1]:
                 trdpnt_x = (frtpnt[0] + sndpnt[0]) / 2 - height / (
+                        ((sndpnt[0] - frtpnt[0]) / (sndpnt[1] - frtpnt[1])) ** 2 + 1) ** 0.5
+                trdpnt_y = (frtpnt[1] + sndpnt[1]) / 2 + height / (
+                        ((sndpnt[1] - frtpnt[1]) / (sndpnt[0] - frtpnt[0])) ** 2 + 1) ** 0.5
+            else:
+                trdpnt_x = (frtpnt[0] + sndpnt[0]) / 2 + height / (
                         ((sndpnt[0] - frtpnt[0]) / (sndpnt[1] - frtpnt[1])) ** 2 + 1) ** 0.5
                 trdpnt_y = (frtpnt[1] + sndpnt[1]) / 2 + height / (
                         ((sndpnt[1] - frtpnt[1]) / (sndpnt[0] - frtpnt[0])) ** 2 + 1) ** 0.5

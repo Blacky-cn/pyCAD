@@ -29,12 +29,17 @@ class DoPath:
             lay.LayerOn = False  # 关闭图层
         self.leng = self.pline_length(chainpath)
         self.frtstep = self.frtsteppnt(chainpath, steppnt, step, self.leng)
-        if select % 10 == 1:
-            inserttext = '轨道长度：' + str(int(self.leng[-1])) + 'mm\n' + '轨迹步长：' + step + 'mm\n' + \
-                         '摆杆间距：' + str(bracing) + 'mm\n' + '摆杆长度：' + str(swingleng) + 'mm'
+        if swingstate_value == 1:
+            swingstate_value_text = '模式：前摆杆竖直'
         else:
-            inserttext = '轨道长度：' + str(int(self.leng[-1])) + 'mm\n' + '工件节距：' + str(pitch) + 'mm\n' + \
-                         '摆杆间距：' + str(bracing) + 'mm\n' + '摆杆长度：' + str(swingleng + 252.75) + 'mm'
+            swingstate_value_text = '模式：后摆杆竖直'
+        if select % 10 == 1:
+            inserttext = swingstate_value_text + '\n轨道长度：' + str(
+                int(self.leng[-1])) + 'mm\n' + '轨迹步长：' + step + 'mm\n' + '摆杆间距：' + str(
+                bracing) + 'mm\n' + '摆杆长度：' + str(swingleng) + 'mm'
+        else:
+            inserttext = swingstate_value_text + '\n轨道长度：' + str(int(self.leng[-1])) + 'mm\n' + '工件节距：' + str(
+                pitch) + 'mm\n' + '摆杆间距：' + str(bracing) + 'mm\n' + '摆杆长度：' + str(swingleng + 252.75) + 'mm'
         self.insert_mt(chainpath, inserttext)
         self.j = 1
         self.jj = 0  # 判断是否为第一次插入
@@ -83,9 +88,65 @@ class DoPath:
             lay.LayerOn = True  # 打开图层
         self.doc.ActiveLayer = self.doc.Layers("0")
 
-    def do_pendulum_diptank(self, swing):
+    def do_pendulum_diptank(self, swingmode_value, chainpath, diptank_midpnt, chainbracing, bracing, pitch, swingleng):
         """摆杆 - 浸入即出槽分析"""
-        pass
+        # for lay in self.layerobjs:
+        #     lay.LayerOn = False  # 关闭图层
+        self.leng = self.pline_length(chainpath)
+        self.point_on_pline(chainpath, diptank_midpnt)
+        if swingmode_value == 1:
+            swingmode_value_text = '模式：内侧摆杆竖直'
+        else:
+            swingmode_value_text = '模式：外侧摆杆竖直'
+        inserttext = '浸入即出槽分析\n' + swingmode_value_text + '\n摆杆间距：' + str(bracing) + 'mm\n' + '摆杆长度：' + str(
+            swingleng) + 'mm\n' + '工件节距：' + str(pitch) + 'mm'
+        self.insert_mt(chainpath, inserttext)
+        self.j = 1
+        self.jj = 0  # 判断是否为第一次插入
+        for i in range(2):
+            chainplate = []
+            fswing = []
+            bswing = []
+            car = []
+            if ((self.j - 1) * float(step) + self.frtstep) > ((carnum - 1) * pitch + bracing + 2 * chainbracing):
+                for num in range(2):
+                    layernum = self.j % len(self.layerobjs)
+                    self.doc.ActiveLayer = self.doc.Layers(self.layerobjs[layernum].Name)
+                    nowdist = (self.j - 1) * float(step) + self.frtstep
+                    if num == 0:
+                        inspnt0 = i
+                    else:
+                        inspnt0 = self.find_distpnt(chainpath, self.leng, nowdist, inspnt0, num * pitch)
+                    self.swingpnt = []
+                    for swingnum in range(2):
+                        if swingnum == 0:
+                            inspnt1 = inspnt0
+                        if swingnum == 1:
+                            inspnt1 = self.find_distpnt(chainpath, self.leng, nowdist - num * pitch, inspnt0, bracing)
+                        self.find_insertpnt(chainpath, step, chainbracing, nowdist - num * pitch - swingnum * bracing,
+                                            inspnt1, i)
+                        self.insert_block('ChainPlate', chainplate, swingnum)
+                        self.circlebr.Delete()
+                        self.swingpnt.append(self.find_isotrianglepnt(inspnt1))
+                        if swingnum == 0 and swingstate_value == 1:  # 前摆杆竖直
+                            self.insert_swing(fswing, self.swingpnt[0], swingleng, bracing, 'FSwing')
+                        elif swingnum == 1 and swingstate_value == 2:  # 后摆杆竖直
+                            self.insert_swing(bswing, self.swingpnt[1], swingleng, bracing, 'BSwing')
+                        else:
+                            swingpnt0 = Tc.vtpnt(self.swingpnt[-1][0], self.swingpnt[-1][1])
+                            self.circleswing = self.msp.AddCircle(swingpnt0, swingleng)
+                    if swingstate_value == 1:  # 前摆杆竖直，插入后摆杆和工件
+                        self.insert_car(swingstate_value, car, bswing)
+                    else:  # 后摆杆竖直，插入前摆杆和工件
+                        self.insert_car(swingstate_value, car, fswing)
+                    self.circlecar.Delete()
+                    self.circleswing.Delete()
+                if select % 10 == 2:
+                    self.animation_next_or_copy(chainplate, fswing, bswing, car)
+            self.j += 1
+        for lay in self.layerobjs:
+            lay.LayerOn = True  # 打开图层
+        self.doc.ActiveLayer = self.doc.Layers("0")
 
     def do_2trolley(self, select, dirvalue, car_name, chainpath, step, bracing, carnum, pitch):
         """台车 - 轨迹/动画"""
@@ -339,6 +400,18 @@ class DoPath:
                         ((sndpnt[1] - frtpnt[1]) / (sndpnt[0] - frtpnt[0])) ** 2 + 1) ** 0.5
         trdpnt = [trdpnt_x, trdpnt_y]
         return trdpnt
+
+    def point_on_pline(self, pline, point0):
+        point = Tc.vtpnt(point0[0], point0[1])
+        circle = self.msp.AddCircle(point, 0.001)
+        if pline.IntersectWith(circle, 0):
+            pline1 = pline.Explode()
+            for i in range(len(pline1)):
+                if pline1[i].IntersectWith(circle, 0):
+                    break
+            pline1.Delete()
+        else:
+            return 0
 
     def create_layer(self):
         """创建绘图层"""

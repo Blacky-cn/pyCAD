@@ -36,23 +36,31 @@ class PathWidgets:
         tab2_frame1.grid(column=0, row=1, sticky='WNS', padx=8, pady=4)
 
         # Add a Label_选择轨迹线
-        ttk.Label(tab2_frame1, text='轨迹线及起点: ').grid(column=0, row=3)
+        ttk.Label(tab2_frame1, text='轨迹线及起点: ').grid(column=0, row=0)
         # Add a Button_选择轨迹线
         self.b_choose_chainpath = ttk.Button(tab2_frame1, text='单击选择', style='R.TButton',
                                              command=lambda: self.click_pline('chainpath'))
-        self.b_choose_chainpath.grid(column=1, row=3)
+        self.b_choose_chainpath.grid(column=1, row=0)
 
         if select % 10 == 3 or select % 10 == 4:
             # Add a Label_选择轨迹线
-            ttk.Label(tab2_frame1, text='摆杆滚轮所在轨迹线: ').grid(column=0, row=4)
+            ttk.Label(tab2_frame1, text='摆杆滚轮所在轨迹线: ').grid(column=0, row=1)
             # Add a Button_选择轨迹线
             self.b_choose_rollerpath = ttk.Button(tab2_frame1, text='单击选择', style='R.TButton',
                                                   command=lambda: self.click_pline('rollerpath'))
-            self.b_choose_rollerpath.grid(column=1, row=4)
+            self.b_choose_rollerpath.grid(column=1, row=1)
+
+        if select % 10 == 5:
+            # Add a Label_选择轨迹中心点
+            ttk.Label(tab2_frame1, text='轨迹中心点: ').grid(column=0, row=1)
+            # Add a Button_选择轨迹中心点
+            self.b_choose_diptank_midpnt = ttk.Button(tab2_frame1, text='单击选择', style='R.TButton',
+                                                      command=lambda: self.click_point('diptank_midpnt'))
+            self.b_choose_diptank_midpnt.grid(column=1, row=1)
 
         # Add a Label_选择工件方向
         l_dir = ttk.Label(tab2_frame1, text='工件/摆杆块方向: ')
-        l_dir.grid(column=0, row=5)
+        l_dir.grid(column=0, row=2)
         # Add a Tooltip_提示框
         tt.create_tooltip(l_dir, '工件块、链板块与摆杆块方向需一致')
         # Add Radiobutton_选择工件方向
@@ -61,11 +69,11 @@ class PathWidgets:
         cardirs = {'右': 1, '左': 2}
         for cardir, cardir_num in cardirs.items():
             rb_dir = ttk.Radiobutton(tab2_frame1, text=cardir, value=cardir_num, variable=self.dirvalue)
-            rb_dir.grid(column=cardir_num, row=5)
+            rb_dir.grid(column=cardir_num, row=2)
 
         if select % 10 == 1 or select % 10 == 2:
             # Add a Label_选择摆杆状态
-            ttk.Label(tab2_frame1, text='摆杆状态: ').grid(column=0, row=6)
+            ttk.Label(tab2_frame1, text='摆杆状态: ').grid(column=0, row=3)
             # Add Radiobutton_选择摆杆状态
             self.swingstate_value = tk.IntVar()
             self.swingstate_value.set(1)
@@ -73,22 +81,22 @@ class PathWidgets:
             for swingstate, swingstate_num in swingstates.items():
                 rb_swingstate = ttk.Radiobutton(tab2_frame1, text=swingstate, value=swingstate_num,
                                                 variable=self.swingstate_value)
-                rb_swingstate.grid(column=swingstate_num, row=6)
+                rb_swingstate.grid(column=swingstate_num, row=3)
 
             # Add a Label_是否绘制包络线
             c_envelope_value = tk.IntVar()
             c_envelope = tk.Checkbutton(tab2_frame1, text='提取包络线: ', variable=c_envelope_value,
                                         command=lambda: self.envolope(c_envelope_value.get()))
-            c_envelope.grid(column=0, row=7)
+            c_envelope.grid(column=0, row=4)
             c_envelope.deselect()
             # Add a Button_选择上包络线特征点
             self.b_choose_uenvelope = ttk.Button(tab2_frame1, text='选择上特征点', state='disabled', style='R.TButton',
                                                  command=lambda: self.click_point('uenvelope'))
-            self.b_choose_uenvelope.grid(column=1, row=7)
+            self.b_choose_uenvelope.grid(column=1, row=4)
             # Add a Button_选择下包络线特征点
             self.b_choose_lenvelope = ttk.Button(tab2_frame1, text='选择下特征点', state='disabled', style='R.TButton',
                                                  command=lambda: self.click_point('lenvelope'))
-            self.b_choose_lenvelope.grid(column=2, row=7)
+            self.b_choose_lenvelope.grid(column=2, row=4)
             # 若为仿真动画，禁用包络线选项
             if select % 10 == 2:
                 c_envelope.configure(state='disabled')
@@ -103,15 +111,15 @@ class PathWidgets:
 
         # Add a Label_链板节距
         ttk.Label(tab2_frame2, text='链板节距(mm): ').grid(column=0, row=0)
-        # Add a Entry_链板节距
-        self.chainbracing = tk.StringVar()
+        # Add an Entry_链板节距
+        self.chainbracing = tk.IntVar()
         ttk.Entry(tab2_frame2, width=12, textvariable=self.chainbracing).grid(column=1, row=0)
         self.chainbracing.set(250)
 
         # Add a Label_摆杆间距
         ttk.Label(tab2_frame2, text='摆杆间距(mm): ').grid(column=0, row=1)
-        self.bracing = tk.StringVar()
-        # Add a Entry_摆杆间距
+        self.bracing = tk.IntVar()
+        # Add an Entry_摆杆间距
         ttk.Entry(tab2_frame2, width=12, textvariable=self.bracing).grid(column=1, row=1)
         self.bracing.set(3250)
 
@@ -120,36 +128,41 @@ class PathWidgets:
         l_swingleng.grid(column=0, row=2)
         # Add a Tooltip_提示框
         tt.create_tooltip(l_swingleng, '套筒中心至摆杆底部圆管中心距离')
-        # Add a Entry_摆杆长度
-        self.swingleng = tk.StringVar()
+        # Add an Entry_摆杆长度
+        self.swingleng = tk.IntVar()
         ttk.Entry(tab2_frame2, width=12, textvariable=self.swingleng).grid(column=1, row=2)
+        self.swingleng.set(2950)
 
         # Add a Label_轨迹步长
         ttk.Label(tab2_frame2, text='轨迹步长(mm): ').grid(column=0, row=4)
-        # Add a Entry_轨迹步长
-        self.step = tk.StringVar()
-        ttk.Entry(tab2_frame2, width=12, textvariable=self.step).grid(column=1, row=4)
+        # Add an Entry_轨迹步长
+        self.step = tk.IntVar()
+        e_step = ttk.Entry(tab2_frame2, width=12, textvariable=self.step)
+        e_step.grid(column=1, row=4)
+        self.step.set(500)
 
         # Add a Label_工件数量
         l_num = ttk.Label(tab2_frame2, text='工件数量: ')
         l_num.grid(column=0, row=5)
-        # Add a Entry_工件数量
-        self.carnum = tk.StringVar()
+        # Add an Entry_工件数量
+        self.carnum = tk.IntVar()
         e_num = ttk.Entry(tab2_frame2, width=12, textvariable=self.carnum)
         e_num.grid(column=1, row=5)
         # Add a Label_工件节距
         l_pitch = ttk.Label(tab2_frame2, text='工件节距(mm): ')
         l_pitch.grid(column=0, row=6)
-        # Add a Entry_工件节距
-        self.pitch = tk.StringVar()
+        # Add an Entry_工件节距
+        self.pitch = tk.IntVar()
         e_pitch = ttk.Entry(tab2_frame2, width=12, textvariable=self.pitch)
         e_pitch.grid(column=1, row=6)
+        # 若为浸入即出槽分析，禁用工件数量、步长选项
+        if select % 10 == 5:
+            e_step.configure(state='disabled')
+            e_num.configure(state='disabled')
         # 若为绘制轨迹，禁用工件数量、节距选项
-        if select % 10 == 1:
-            l_num.configure(state='disabled')
+        elif select % 10 != 2 and select % 10 != 4:
             e_num.configure(state='disabled')
             self.carnum.set(1)
-            l_pitch.configure(state='disabled')
             e_pitch.configure(state='disabled')
             self.pitch.set(0)
 
@@ -165,10 +178,11 @@ class PathWidgets:
             ttk.Label(tab2_frame3, text='选择分析模式: ').grid(column=0, row=0)
             self.swingmode_value = tk.IntVar()
             self.swingmode_value.set(1)
-            swingmode = [('内侧摆杆竖直', 1), ('外侧摆杆竖直', 2)]
-            for i, j in swingmode:
-                ra_swingmode = ttk.Radiobutton(tab2_frame3, text=i, value=j, variable=self.swingmode_value)
-                ra_swingmode.grid(column=j, row=0)
+            swingmodes = {'内侧摆杆竖直': 1, '外侧摆杆竖直': 2}
+            for swingmode, swingmode_num in swingmodes.items():
+                rb_swingmode = ttk.Radiobutton(tab2_frame3, text=swingmode, value=swingmode_num,
+                                               variable=self.swingmode_value)
+                rb_swingmode.grid(column=swingmode_num, row=0)
 
             for child in tab2_frame3.winfo_children():
                 child.grid_configure(sticky=tk.W, padx=8, pady=4)
@@ -179,19 +193,19 @@ class PathWidgets:
 
             # Add a Label_工件高度
             ttk.Label(tab2_frame4, text='工件高度(mm): ').grid(column=0, row=0)
-            # Add a Entry_工件高度
+            # Add an Entry_工件高度
             self.carheight = tk.StringVar()
             ttk.Entry(tab2_frame4, width=12, textvariable=self.carheight).grid(column=1, row=0)
 
             # Add a Label_液面高度
             ttk.Label(tab2_frame4, text='液面距轨道中心(mm): ').grid(column=2, row=0)
-            # Add a Entry_液面高度
+            # Add an Entry_液面高度
             self.liquidheight = tk.StringVar()
             ttk.Entry(tab2_frame4, width=12, textvariable=self.liquidheight).grid(column=3, row=0)
 
             # Add a Label_链速
             ttk.Label(tab2_frame4, text='链速(m/min): ').grid(column=0, row=1)
-            # Add a Entry_链速
+            # Add an Entry_链速
             self.chainspeed = tk.StringVar()
             ttk.Entry(tab2_frame4, width=12, textvariable=self.chainspeed).grid(column=1, row=1)
 
@@ -208,15 +222,27 @@ class PathWidgets:
         # Add Frame5_退出====================================
         tab2_frame5 = ttk.LabelFrame(self.tab2, text='')
         tab2_frame5.grid(column=0, row=5, columnspan=2)
-        self.b_entry = ttk.Button(tab2_frame5, text='确定',
-                                  command=lambda: self.doPath.do_pendulum(select, self.dirvalue.get(),
-                                                                          self.swingstate_value.get(), self.chainpath,
-                                                                          self.step.get(),
-                                                                          float(self.chainbracing.get()),
-                                                                          float(self.bracing.get()),
-                                                                          int(self.carnum.get()),
-                                                                          float(self.pitch.get()),
-                                                                          float(self.swingleng.get()) - 252.75))
+        if select % 10 <= 4:
+            self.b_entry = ttk.Button(tab2_frame5, text='确定',
+                                      command=lambda: self.doPath.do_pendulum(select, self.dirvalue.get(),
+                                                                              self.swingstate_value.get(),
+                                                                              self.chainpath,
+                                                                              self.step.get(),
+                                                                              float(self.chainbracing.get()),
+                                                                              float(self.bracing.get()),
+                                                                              int(self.carnum.get()),
+                                                                              float(self.pitch.get()),
+                                                                              float(self.swingleng.get()) - 252.75))
+        elif select % 10 == 5:
+            self.b_entry = ttk.Button(tab2_frame5, text='确定',
+                                      command=lambda: self.doPath.do_pendulum_diptank(self.swingmode_value.get(),
+                                                                                      self.chainpath,
+                                                                                      self.diptank_midpnt,
+                                                                                      float(self.chainbracing.get()),
+                                                                                      float(self.bracing.get()),
+                                                                                      float(self.pitch.get()),
+                                                                                      float(
+                                                                                          self.swingleng.get()) - 252.75))
         self.b_entry.grid(column=0, row=0, padx=20, pady=8)
         self.b_quit = ttk.Button(tab2_frame5, text='退出', command=self.oop.quit)
         self.b_quit.grid(column=1, row=0, padx=20, pady=8)
@@ -266,22 +292,22 @@ class PathWidgets:
 
         # Add a Label_轨迹步长
         ttk.Label(tab2_frame2, text='轨迹步长(mm): ').grid(column=0, row=1)
-        # Add a Entry_轨迹步长
+        # Add an Entry_轨迹步长
         self.step = tk.StringVar()
         ttk.Entry(tab2_frame2, width=12, textvariable=self.step).grid(column=1, row=1)
 
         # Add a Label_工件数量
         l_carnum = ttk.Label(tab2_frame2, text='工件数量: ')
         l_carnum.grid(column=0, row=2)
-        # Add a Entry_工件数量
-        self.carnum = tk.StringVar()
+        # Add an Entry_工件数量
+        self.carnum = tk.IntVar()
         e_carnum = ttk.Entry(tab2_frame2, width=12, textvariable=self.carnum)
         e_carnum.grid(column=1, row=2)
         # Add a Label_工件节距
         l_pitch = ttk.Label(tab2_frame2, text='工件节距(mm): ')
         l_pitch.grid(column=0, row=3)
-        # Add a Entry_工件节距
-        self.pitch = tk.StringVar()
+        # Add an Entry_工件节距
+        self.pitch = tk.IntVar()
         e_pitch = ttk.Entry(tab2_frame2, width=12, textvariable=self.pitch)
         e_pitch.grid(column=1, row=3)
         # 若为绘制轨迹，则禁用工件数量、节距选项
@@ -337,10 +363,10 @@ class PathWidgets:
     def click_pline(self, pline_name):
         """选择轨道线"""
         pline = self.doc.Utility.GetEntity()  # 在cad中选择多段线
-        time.sleep(0.1)
+        # time.sleep(0.1)
         while 'polyline' not in pline[0].ObjectName.lower():  # 判断选取的是否为多段线
             msg.showerror('错误', '您选择的不是多段线，\n请重新选择！')
-            time.sleep(0.1)
+            # time.sleep(0.1)
             pline = self.doc.Utility.GetEntity()
         if pline_name == 'chainpath':
             pline_pnt = list(pline[0].Coordinates[:])  # 获取多段线各顶点坐标
@@ -348,11 +374,12 @@ class PathWidgets:
             pllayer, pltype, plcw = pline[0].Layer, pline[0].Linetype, pline[0].ConstantWidth
             # 指定并调整轨迹线方向
             self.doc.Utility.Prompt("请指定多段线的起点，在相应端点上单击")
-            time.sleep(0.1)
-            start_pnt = list(self.doc.Utility.GetPoint())
+            # time.sleep(0.1)
+            start_pnt = list(self.doc.Utility.GetPoint(Prompt=''))
             while start_pnt[:2] != pline_pnt[:2] and start_pnt[:2] != pline_pnt[-2:]:
                 msg.showerror('错误', '未选择多段线的端点，请重新选择！')
-                start_pnt = list(self.doc.Utility.GetPoint())
+                self.doc.Utility.Prompt("请指定多段线的起点，在相应端点上单击")
+                start_pnt = list(self.doc.Utility.GetPoint(Prompt=''))
             pline1_Pnt = []
             pline_bulge = [1] * pline_vertex
             pline1_bulge = [1] * pline_vertex
@@ -398,6 +425,9 @@ class PathWidgets:
         elif point_name == 'immersion':
             self.immersion = list(self.doc.Utility.GetPoint())
             self.b_choose_immersion.configure(style='G.TButton', text='已选择')
+        elif point_name == 'diptank_midpnt':
+            self.diptank_midpnt = list(self.doc.Utility.GetPoint())
+            self.b_choose_diptank_midpnt.configure(style='G.TButton', text='已选择')
 
     def envolope(self, value):
         """包络线选项状态控制"""

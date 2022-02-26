@@ -12,22 +12,51 @@ import time
 import tkinter as tk
 from tkinter import ttk, messagebox as msg
 
+import win32com.client
+
 import AutoPath_ToopTip as tt
 import AutoPath_TypeConvert as tc
+from AutoPath_CallBacks import CallBacks
 from AutoPath_DoPath import DoPath
 
 
 # =========================================================
 class PathWidgets:
-    def __init__(self, oop, tab2, doc, msp):
+    def __init__(self, oop):
+        wincad = win32com.client.Dispatch("AutoCAD.Application")
+        self.doc = wincad.ActiveDocument
+        time.sleep(0.1)
+        self.doc.Utility.Prompt("Hello! AutoPath from LZH.\n")
+        time.sleep(0.1)
+        self.msp = self.doc.ModelSpace
+
         self.oop = oop
-        self.tab2 = tab2
-        self.doc = doc
-        self.msp = msp
+        self.tab2 = ttk.Frame(self.oop.tabcontrol)  # Create Tab2
+        self.oop.tabcontrol.add(self.tab2, text='输入参数', state='disabled')  # Add Tab2
+        self.oop.tabcontrol.pack(expand=1, fill='both')  # Pack to make visible
+        self.callbacks = CallBacks(self)
         self.doPath = DoPath(self.oop, self.doc, self.msp)
+
         style = ttk.Style()
         style.configure('R.TButton', foreground='red')
         style.configure('G.TButton', foreground='green')
+
+    def donext(self):
+        """根据选择的工件类型、轨迹类型，生成对应初始化GUI"""
+        self.oop.tabcontrol.tab(1, state='normal')
+        self.oop.tabcontrol.select(self.tab2)
+        for child in self.tab2.winfo_children():
+            child.destroy()
+        self.doselect = self.oop.cartype_value.get() * 10 + self.oop.pathtype_value.get()
+        if self.doselect // 10 == 1:  # 摆杆
+            self.donext_pendulum(self.doselect)
+        elif self.doselect // 10 == 2:  # 翻转机
+            pass
+        else:  # 台车
+            if self.doselect % 10 <= 2:  # 2台车
+                self.donext_2trolley(self.doselect)
+            else:  # 4台车
+                self.donext_4trolley(self.doselect)
 
     def donext_pendulum(self, select):
         """选择摆杆程序，生成对应初始化GUI"""
@@ -112,13 +141,13 @@ class PathWidgets:
         # Add a Label_链板节距
         ttk.Label(tab2_frame2, text='链板节距(mm): ').grid(column=0, row=0)
         # Add an Entry_链板节距
-        self.chainbracing = tk.IntVar()
+        self.chainbracing = tk.DoubleVar()
         ttk.Entry(tab2_frame2, width=12, textvariable=self.chainbracing).grid(column=1, row=0)
         self.chainbracing.set(250)
 
         # Add a Label_摆杆间距
         ttk.Label(tab2_frame2, text='摆杆间距(mm): ').grid(column=0, row=1)
-        self.bracing = tk.IntVar()
+        self.bracing = tk.DoubleVar()
         # Add an Entry_摆杆间距
         ttk.Entry(tab2_frame2, width=12, textvariable=self.bracing).grid(column=1, row=1)
         self.bracing.set(3250)
@@ -129,7 +158,7 @@ class PathWidgets:
         # Add a Tooltip_提示框
         tt.create_tooltip(l_swingleng, '套筒中心至摆杆底部圆管中心距离')
         # Add an Entry_摆杆长度
-        self.swingleng = tk.IntVar()
+        self.swingleng = tk.DoubleVar()
         ttk.Entry(tab2_frame2, width=12, textvariable=self.swingleng).grid(column=1, row=2)
         self.swingleng.set(2950)
 
@@ -148,13 +177,16 @@ class PathWidgets:
         self.carnum = tk.IntVar()
         e_num = ttk.Entry(tab2_frame2, width=12, textvariable=self.carnum)
         e_num.grid(column=1, row=5)
+
         # Add a Label_工件节距
         l_pitch = ttk.Label(tab2_frame2, text='工件节距(mm): ')
         l_pitch.grid(column=0, row=6)
         # Add an Entry_工件节距
-        self.pitch = tk.IntVar()
+        self.pitch = tk.DoubleVar()
         e_pitch = ttk.Entry(tab2_frame2, width=12, textvariable=self.pitch)
         e_pitch.grid(column=1, row=6)
+        self.pitch.set(6750)
+
         # 若为浸入即出槽分析，禁用工件数量、步长选项
         if select % 10 == 5:
             e_step.configure(state='disabled')
@@ -228,23 +260,22 @@ class PathWidgets:
                                                                               self.swingstate_value.get(),
                                                                               self.chainpath,
                                                                               self.step.get(),
-                                                                              float(self.chainbracing.get()),
-                                                                              float(self.bracing.get()),
-                                                                              int(self.carnum.get()),
-                                                                              float(self.pitch.get()),
-                                                                              float(self.swingleng.get()) - 252.75))
+                                                                              self.chainbracing.get(),
+                                                                              self.bracing.get(),
+                                                                              self.carnum.get(),
+                                                                              self.pitch.get(),
+                                                                              self.swingleng.get()) - 252.75)
         elif select % 10 == 5:
             self.b_entry = ttk.Button(tab2_frame5, text='确定',
                                       command=lambda: self.doPath.do_pendulum_diptank(self.swingmode_value.get(),
                                                                                       self.chainpath,
                                                                                       self.diptank_midpnt,
-                                                                                      float(self.chainbracing.get()),
-                                                                                      float(self.bracing.get()),
-                                                                                      float(self.pitch.get()),
-                                                                                      float(
-                                                                                          self.swingleng.get()) - 252.75))
+                                                                                      self.chainbracing.get(),
+                                                                                      self.bracing.get(),
+                                                                                      self.pitch.get(),
+                                                                                      self.swingleng.get()) - 252.75)
         self.b_entry.grid(column=0, row=0, padx=20, pady=8)
-        self.b_quit = ttk.Button(tab2_frame5, text='退出', command=self.oop.quit)
+        self.b_quit = ttk.Button(tab2_frame5, text='退出', command=self.callbacks.quit)
         self.b_quit.grid(column=1, row=0, padx=20, pady=8)
 
     def donext_2trolley(self, select):
@@ -287,13 +318,13 @@ class PathWidgets:
         # Add a Label_工件前后支撑距离
         ttk.Label(tab2_frame2, text='工件前后支撑距离(mm): ').grid(column=0, row=0)
         # Add a Entry_工件前后支撑距离
-        self.bracing = tk.StringVar()
+        self.bracing = tk.DoubleVar()
         ttk.Entry(tab2_frame2, width=12, textvariable=self.bracing).grid(column=1, row=0)
 
         # Add a Label_轨迹步长
         ttk.Label(tab2_frame2, text='轨迹步长(mm): ').grid(column=0, row=1)
         # Add an Entry_轨迹步长
-        self.step = tk.StringVar()
+        self.step = tk.DoubleVar()
         ttk.Entry(tab2_frame2, width=12, textvariable=self.step).grid(column=1, row=1)
 
         # Add a Label_工件数量
@@ -307,7 +338,7 @@ class PathWidgets:
         l_pitch = ttk.Label(tab2_frame2, text='工件节距(mm): ')
         l_pitch.grid(column=0, row=3)
         # Add an Entry_工件节距
-        self.pitch = tk.IntVar()
+        self.pitch = tk.DoubleVar()
         e_pitch = ttk.Entry(tab2_frame2, width=12, textvariable=self.pitch)
         e_pitch.grid(column=1, row=3)
         # 若为绘制轨迹，则禁用工件数量、节距选项
@@ -328,9 +359,8 @@ class PathWidgets:
         self.b_entry = ttk.Button(tab2_frame3, text='确定',
                                   command=lambda: self.doPath.do_2trolley(select, self.dirvalue.get(), self.car_name,
                                                                           self.chainpath, self.step.get(),
-                                                                          float(self.bracing.get()),
-                                                                          int(self.carnum.get()),
-                                                                          float(self.pitch.get())))
+                                                                          self.bracing.get(), self.carnum.get(),
+                                                                          self.pitch.get()))
         self.b_entry.grid(column=0, row=0, padx=20, pady=8)
         self.b_quit = ttk.Button(tab2_frame3, text='退出', command=self.oop.quit)
         self.b_quit.grid(column=1, row=0, padx=20, pady=8)

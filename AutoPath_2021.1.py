@@ -9,6 +9,7 @@ import tkinter as tk
 from tkinter import ttk, Menu
 
 from AutoPath_CallBacks import CallBacks
+from AutoPath_PathWidgets import PathWidgets
 
 
 # =========================================================
@@ -19,6 +20,7 @@ class OOP(object):
         self.win.title("AutoPath")
         self.win.geometry('580x410')
         self.win.resizable(False, False)
+        self.callbacks = CallBacks(self)
         self.create_widgets()
 
     def create_widgets(self):
@@ -29,7 +31,7 @@ class OOP(object):
         self.tab1 = ttk.Frame(self.tabcontrol)
         # Add Tab1_功能选择
         self.tabcontrol.add(self.tab1, text='功能选择')
-        self.callbacks = CallBacks(self)
+        self.pathwidgets = PathWidgets(self)
 
         # Add Frame1_工件类型=======================================
         self.tab1_frame1 = ttk.LabelFrame(self.tab1, text='1.请选择工件类型:')
@@ -54,7 +56,7 @@ class OOP(object):
         # Add Frame3_确定与退出======================================
         tab1_frame3 = ttk.LabelFrame(self.tab1, text='')
         tab1_frame3.grid(column=0, row=2, padx=8, pady=4)
-        self.b_next = ttk.Button(tab1_frame3, text='下一步', state='disabled', command=self.callbacks.donext)
+        self.b_next = ttk.Button(tab1_frame3, text='下一步', state='disabled', command=self.pathwidgets.donext)
         self.b_next.grid(column=0, row=0, padx=8, pady=8)
         ttk.Button(tab1_frame3, text='退出', command=self.callbacks.quit).grid(column=1, row=0, padx=8, pady=8)
 

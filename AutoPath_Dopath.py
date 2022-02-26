@@ -8,8 +8,10 @@
 # imports==========
 import math
 import time
+from tkinter import messagebox as msg
 
 import AutoPath_TypeConvert as Tc
+from AutoPath_CallBacks import CallBacks
 
 
 # =========================================================
@@ -19,6 +21,7 @@ class DoPath:
         self.doc = doc
         self.msp = msp
         self.layerobjs = self.create_layer()
+        self.callbacks = CallBacks(self)
 
     def do_pendulum(self, select, dirvalue, swingstate_value, chainpath, step, chainbracing, bracing, carnum, pitch,
                     swingleng):
@@ -34,11 +37,10 @@ class DoPath:
         else:
             swingstate_value_text = '模式：后摆杆竖直'
         if select % 10 == 1:
-            inserttext = swingstate_value_text + '\n轨道长度：' + str(
-                int(self.leng[-1])) + 'mm\n' + '轨迹步长：' + step + 'mm\n' + '摆杆间距：' + str(
-                bracing) + 'mm\n' + '摆杆长度：' + str(swingleng) + 'mm'
+            inserttext = swingstate_value_text + '\n轨道长度：' + str(round(self.leng[-1], 2)) + 'mm\n' + '轨迹步长：' + str(
+                step) + 'mm\n' + '摆杆间距：' + str(bracing) + 'mm\n' + '摆杆长度：' + str(swingleng) + 'mm'
         else:
-            inserttext = swingstate_value_text + '\n轨道长度：' + str(int(self.leng[-1])) + 'mm\n' + '工件节距：' + str(
+            inserttext = swingstate_value_text + '\n轨道长度：' + str(round(self.leng[-1], 2)) + 'mm\n' + '工件节距：' + str(
                 pitch) + 'mm\n' + '摆杆间距：' + str(bracing) + 'mm\n' + '摆杆长度：' + str(swingleng + 252.75) + 'mm'
         self.insert_mt(chainpath, inserttext)
         self.j = 1
@@ -63,7 +65,7 @@ class DoPath:
                             inspnt1 = inspnt0
                         if swingnum == 1:
                             inspnt1 = self.find_distpnt(chainpath, self.leng, nowdist - num * pitch, inspnt0, bracing)
-                        self.find_insertpnt(chainpath, step, chainbracing, nowdist - num * pitch - swingnum * bracing,
+                        self.find_insertpnt(chainpath, chainbracing, nowdist - num * pitch - swingnum * bracing,
                                             inspnt1, i)
                         self.insert_block('ChainPlate', chainplate, swingnum)
                         self.circlebr.Delete()
@@ -93,7 +95,12 @@ class DoPath:
         # for lay in self.layerobjs:
         #     lay.LayerOn = False  # 关闭图层
         self.leng = self.pline_length(chainpath)
-        self.point_on_pline(chainpath, diptank_midpnt)
+        pline_segment = self.point_on_pline(chainpath, diptank_midpnt)
+        dist_of_plinestart = self.find_dist(chainpath, diptank_midpnt[:2], pline_segment)
+        if (dist_of_plinestart <= (bracing + (pitch - bracing) / 2 + chainbracing)) or (
+                (self.leng[-1] - dist_of_plinestart) <= (bracing + (pitch - bracing) / 2 + chainbracing)):
+            if msg.showerror('错误', '请加长轨迹线！'):
+                self.callbacks.quit()
         if swingmode_value == 1:
             swingmode_value_text = '模式：内侧摆杆竖直'
         else:
@@ -108,42 +115,41 @@ class DoPath:
             fswing = []
             bswing = []
             car = []
-            if ((self.j - 1) * float(step) + self.frtstep) > ((carnum - 1) * pitch + bracing + 2 * chainbracing):
-                for num in range(2):
-                    layernum = self.j % len(self.layerobjs)
-                    self.doc.ActiveLayer = self.doc.Layers(self.layerobjs[layernum].Name)
-                    nowdist = (self.j - 1) * float(step) + self.frtstep
-                    if num == 0:
-                        inspnt0 = i
+            if i == 0:
+                nowdist = dist_of_plinestart - (pitch - bracing) / 2
+            else:
+                nowdist = dist_of_plinestart + (bracing + (pitch - bracing) / 2)
+            for num in range(2):
+                layernum = self.j % len(self.layerobjs)
+                self.doc.ActiveLayer = self.doc.Layers(self.layerobjs[layernum].Name)
+                inspnt0 = self.find_distpnt(chainpath, self.leng, nowdist, chainpath.Coordinates[0:2], num * pitch)
+                self.swingpnt = []
+                for swingnum in range(2):
+                    if swingnum == 0:
+                        inspnt1 = inspnt0
+                    if swingnum == 1:
+                        inspnt1 = self.find_distpnt(chainpath, self.leng, nowdist - num * pitch, inspnt0, bracing)
+                    self.find_insertpnt(chainpath, chainbracing, nowdist - num * pitch - swingnum * bracing, inspnt1, i)
+                    self.insert_block('ChainPlate', chainplate, swingnum)
+                    self.circlebr.Delete()
+                    self.swingpnt.append(self.find_isotrianglepnt(inspnt1))
+                    if swingnum == 0 and swingstate_value == 1:  # 前摆杆竖直
+                        self.insert_swing(fswing, self.swingpnt[0], swingleng, bracing, 'FSwing')
+                    elif swingnum == 1 and swingstate_value == 2:  # 后摆杆竖直
+                        self.insert_swing(bswing, self.swingpnt[1], swingleng, bracing, 'BSwing')
                     else:
-                        inspnt0 = self.find_distpnt(chainpath, self.leng, nowdist, inspnt0, num * pitch)
-                    self.swingpnt = []
-                    for swingnum in range(2):
-                        if swingnum == 0:
-                            inspnt1 = inspnt0
-                        if swingnum == 1:
-                            inspnt1 = self.find_distpnt(chainpath, self.leng, nowdist - num * pitch, inspnt0, bracing)
-                        self.find_insertpnt(chainpath, step, chainbracing, nowdist - num * pitch - swingnum * bracing,
-                                            inspnt1, i)
-                        self.insert_block('ChainPlate', chainplate, swingnum)
-                        self.circlebr.Delete()
-                        self.swingpnt.append(self.find_isotrianglepnt(inspnt1))
-                        if swingnum == 0 and swingstate_value == 1:  # 前摆杆竖直
-                            self.insert_swing(fswing, self.swingpnt[0], swingleng, bracing, 'FSwing')
-                        elif swingnum == 1 and swingstate_value == 2:  # 后摆杆竖直
-                            self.insert_swing(bswing, self.swingpnt[1], swingleng, bracing, 'BSwing')
-                        else:
-                            swingpnt0 = Tc.vtpnt(self.swingpnt[-1][0], self.swingpnt[-1][1])
-                            self.circleswing = self.msp.AddCircle(swingpnt0, swingleng)
-                    if swingstate_value == 1:  # 前摆杆竖直，插入后摆杆和工件
-                        self.insert_car(swingstate_value, car, bswing)
-                    else:  # 后摆杆竖直，插入前摆杆和工件
-                        self.insert_car(swingstate_value, car, fswing)
-                    self.circlecar.Delete()
-                    self.circleswing.Delete()
-                if select % 10 == 2:
-                    self.animation_next_or_copy(chainplate, fswing, bswing, car)
-            self.j += 1
+                        swingpnt0 = Tc.vtpnt(self.swingpnt[-1][0], self.swingpnt[-1][1])
+                        self.circleswing = self.msp.AddCircle(swingpnt0, swingleng)
+                if swingmode_value == 1:  # 内侧摆杆竖直，即前车后摆杆、后车前摆杆竖直
+                    pass
+                else:  # 外侧摆杆竖直，即前车前摆杆、后车后摆杆竖直
+                    pass
+                if swingstate_value == 1:  # 前摆杆竖直，插入后摆杆和工件
+                    self.insert_car(swingstate_value, car, bswing)
+                else:  # 后摆杆竖直，插入前摆杆和工件
+                    self.insert_car(swingstate_value, car, fswing)
+                self.circlecar.Delete()
+                self.circleswing.Delete()
         for lay in self.layerobjs:
             lay.LayerOn = True  # 打开图层
         self.doc.ActiveLayer = self.doc.Layers("0")
@@ -174,7 +180,7 @@ class DoPath:
                         inspnt0 = i
                     else:
                         inspnt0 = self.find_distpnt(chainpath, self.leng, nowdist, inspnt0, num * pitch)
-                    self.find_insertpnt(chainpath, step, bracing, nowdist - num * pitch, inspnt0, i)
+                    self.find_insertpnt(chainpath, bracing, nowdist - num * pitch, inspnt0, i)
                     self.insert_block(car_name, car, num)
                     self.circlebr.Delete()
                 if select % 10 == 2:
@@ -184,7 +190,7 @@ class DoPath:
             lay.LayerOn = True  # 打开图层
         self.doc.ActiveLayer = self.doc.Layers("0")
 
-    def find_insertpnt(self, chainpath, step, bracing, nowdist, inspnt0, i):
+    def find_insertpnt(self, chainpath, bracing, nowdist, inspnt0, i):
         self.inspnt = Tc.vtpnt(inspnt0[0], inspnt0[1])
         self.circlebr = self.msp.AddCircle(self.inspnt, bracing)
         self.intpnts = chainpath.IntersectWith(self.circlebr, 0)
@@ -401,17 +407,37 @@ class DoPath:
         trdpnt = [trdpnt_x, trdpnt_y]
         return trdpnt
 
-    def point_on_pline(self, pline, point0):
-        point = Tc.vtpnt(point0[0], point0[1])
-        circle = self.msp.AddCircle(point, 0.001)
-        if pline.IntersectWith(circle, 0):
-            pline1 = pline.Explode()
-            for i in range(len(pline1)):
-                if pline1[i].IntersectWith(circle, 0):
-                    break
-            pline1.Delete()
+    def point_on_pline(self, pline, point, precision=0.0001):
+        """判断点是否在多段线上"""
+        point1 = Tc.vtpnt(point[0], point[1])
+        circle = self.msp.AddCircle(point1, precision)
+        if not pline.IntersectWith(circle, 0):
+            circle.Delete()
+            if msg.showerror('错误', '选择的中点不在轨迹线上！'):
+                self.callbacks.quit()
+        pline1 = pline.Explode()
+        for i in range(len(pline1)):
+            if pline1[i].IntersectWith(circle, 0):
+                circle.Delete()
+                pline1.Delete()
+                return i
+
+    def find_dist(self, pline, point, vertex):
+        """求多段线上一点到起点的距离"""
+        bulge = pline.GetBulge(vertex)
+        if vertex == 0:
+            preleng = 0
         else:
-            return 0
+            preleng = self.leng[vertex - 1]
+        if bulge == 0:
+            dist = ((point[0] - pline.Coordinates[vertex * 2]) ** 2 + (
+                    point[1] - pline.Coordinates[vertex * 2 + 1]) ** 2) ** 0.5
+        else:
+            startpnt = (pline.Coordinates[vertex * 2], pline.Coordinates[vertex * 2 + 1])
+            arc_radius = pline[vertex].Radius  # 圆弧半径
+            dist = 2 * arc_radius * math.asin(
+                ((startpnt[0] - point[0]) ** 2 + (startpnt[1] - point[1]) ** 2) ** 0.5 / 2 / arc_radius)
+        return preleng + dist
 
     def create_layer(self):
         """创建绘图层"""

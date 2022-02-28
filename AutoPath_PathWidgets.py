@@ -267,7 +267,8 @@ class PathWidgets:
                                                                               self.swingleng.get()) - 252.75)
         elif select % 10 == 5:
             self.b_entry = ttk.Button(tab2_frame5, text='确定',
-                                      command=lambda: self.doPath.do_pendulum_diptank(self.swingmode_value.get(),
+                                      command=lambda: self.doPath.do_pendulum_diptank(self.dirvalue.get(),
+                                                                                      self.swingmode_value.get(),
                                                                                       self.chainpath,
                                                                                       self.diptank_midpnt,
                                                                                       self.chainbracing.get(),

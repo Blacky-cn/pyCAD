@@ -90,10 +90,12 @@ class DoPath:
             lay.LayerOn = True  # 打开图层
         self.doc.ActiveLayer = self.doc.Layers("0")
 
-    def do_pendulum_diptank(self, swingmode_value, chainpath, diptank_midpnt, chainbracing, bracing, pitch, swingleng):
+    def do_pendulum_diptank(self, dirvalue, swingmode_value, chainpath, diptank_midpnt, chainbracing, bracing, pitch,
+                            swingleng):
         """摆杆 - 浸入即出槽分析"""
         # for lay in self.layerobjs:
         #     lay.LayerOn = False  # 关闭图层
+        self.dirvalue = dirvalue
         self.leng = self.pline_length(chainpath)
         pline_segment = self.point_on_pline(chainpath, diptank_midpnt)
         dist_of_plinestart = self.find_dist(chainpath, diptank_midpnt[:2], pline_segment)
@@ -108,48 +110,61 @@ class DoPath:
         inserttext = '浸入即出槽分析\n' + swingmode_value_text + '\n摆杆间距：' + str(bracing) + 'mm\n' + '摆杆长度：' + str(
             swingleng) + 'mm\n' + '工件节距：' + str(pitch) + 'mm'
         self.insert_mt(chainpath, inserttext)
-        self.j = 1
         self.jj = 0  # 判断是否为第一次插入
-        for i in range(2):
+        for num in range(2):
             chainplate = []
             fswing = []
             bswing = []
             car = []
-            if i == 0:
+            if num == 0:  # 后车
                 nowdist = dist_of_plinestart - (pitch - bracing) / 2
-            else:
-                nowdist = dist_of_plinestart + (bracing + (pitch - bracing) / 2)
-            for num in range(2):
-                layernum = self.j % len(self.layerobjs)
-                self.doc.ActiveLayer = self.doc.Layers(self.layerobjs[layernum].Name)
-                inspnt0 = self.find_distpnt(chainpath, self.leng, nowdist, chainpath.Coordinates[0:2], num * pitch)
-                self.swingpnt = []
-                for swingnum in range(2):
-                    if swingnum == 0:
-                        inspnt1 = inspnt0
-                    if swingnum == 1:
-                        inspnt1 = self.find_distpnt(chainpath, self.leng, nowdist - num * pitch, inspnt0, bracing)
-                    self.find_insertpnt(chainpath, chainbracing, nowdist - num * pitch - swingnum * bracing, inspnt1, i)
-                    self.insert_block('ChainPlate', chainplate, swingnum)
-                    self.circlebr.Delete()
-                    self.swingpnt.append(self.find_isotrianglepnt(inspnt1))
-                    if swingnum == 0 and swingstate_value == 1:  # 前摆杆竖直
-                        self.insert_swing(fswing, self.swingpnt[0], swingleng, bracing, 'FSwing')
-                    elif swingnum == 1 and swingstate_value == 2:  # 后摆杆竖直
-                        self.insert_swing(bswing, self.swingpnt[1], swingleng, bracing, 'BSwing')
+            else:  # 前车
+                nowdist = dist_of_plinestart + bracing + (pitch - bracing) / 2
+            layernum = (num + 1) % len(self.layerobjs)
+            self.doc.ActiveLayer = self.doc.Layers(self.layerobjs[layernum].Name)
+            inspnt0 = self.find_distpnt(chainpath, self.leng, 0.0001, chainpath.Coordinates[0:2], -nowdist)
+            self.swingpnt = []
+            for swingnum in range(2):
+                if swingnum == 0:
+                    inspnt1 = inspnt0
+                if swingnum == 1:
+                    inspnt1 = self.find_distpnt(chainpath, self.leng, nowdist, inspnt0, bracing)
+                self.find_insertpnt(chainpath, chainbracing, nowdist - swingnum * bracing, inspnt1, inspnt0)
+                self.insert_block('ChainPlate', chainplate, swingnum)
+                self.circlebr.Delete()
+                self.swingpnt.append(self.find_isotrianglepnt(inspnt1))
+                if swingmode_value == 1:  # 内侧摆杆竖直，即前车后摆杆、后车前摆杆竖直
+                    if num == 1 and swingnum == 1:  # 插入前车后摆杆
+                        self.insert_swing(fswing, self.swingpnt[1], swingleng, bracing, 'FSwing')
+                    elif num == 0 and swingnum == 0:  # 插入后车前摆杆
+                        self.insert_swing(bswing, self.swingpnt[0], swingleng, bracing, 'BSwing')
                     else:
                         swingpnt0 = Tc.vtpnt(self.swingpnt[-1][0], self.swingpnt[-1][1])
                         self.circleswing = self.msp.AddCircle(swingpnt0, swingleng)
-                if swingmode_value == 1:  # 内侧摆杆竖直，即前车后摆杆、后车前摆杆竖直
-                    pass
                 else:  # 外侧摆杆竖直，即前车前摆杆、后车后摆杆竖直
-                    pass
-                if swingstate_value == 1:  # 前摆杆竖直，插入后摆杆和工件
-                    self.insert_car(swingstate_value, car, bswing)
-                else:  # 后摆杆竖直，插入前摆杆和工件
+                    if num == 1 and swingnum == 0:  # 插入前车前摆杆
+                        self.insert_swing(fswing, self.swingpnt[1], swingleng, bracing, 'FSwing')
+                    elif num == 0 and swingnum == 1:  # 插入后摆杆竖直
+                        self.insert_swing(bswing, self.swingpnt[0], swingleng, bracing, 'BSwing')
+                    else:
+                        swingpnt0 = Tc.vtpnt(self.swingpnt[-1][0], self.swingpnt[-1][1])
+                        self.circleswing = self.msp.AddCircle(swingpnt0, swingleng)
+            if swingmode_value == 1:  # 内侧摆杆竖直，即前车后摆杆、后车前摆杆竖直
+                if num == 1:  # 插入前车前摆杆和工件
+                    swingstate_value = 2
                     self.insert_car(swingstate_value, car, fswing)
-                self.circlecar.Delete()
-                self.circleswing.Delete()
+                else:  # 插入后车后摆杆和工件
+                    swingstate_value = 1
+                    self.insert_car(swingstate_value, car, bswing)
+            else:  # 外侧摆杆竖直，即前车前摆杆、后车后摆杆竖直
+                if num == 1:  # 插入前车后摆杆和工件
+                    swingstate_value = 1
+                    self.insert_car(swingstate_value, car, bswing)
+                else:  # 插入后车前摆杆和工件
+                    swingstate_value = 2
+                    self.insert_car(swingstate_value, car, fswing)
+            self.circlecar.Delete()
+            self.circleswing.Delete()
         for lay in self.layerobjs:
             lay.LayerOn = True  # 打开图层
         self.doc.ActiveLayer = self.doc.Layers("0")
@@ -335,10 +350,9 @@ class DoPath:
                     preleng = leng[vertex - 1]
                 if bulge == 0:
                     if i >= nowdist:
-                        sndpnt[0] = frtpnt[0] - dist * (frtpnt[0] - pline.Coordinates[vertex * 2]) / (
-                                nowdist - preleng)
+                        sndpnt[0] = frtpnt[0] - dist * (frtpnt[0] - pline.Coordinates[vertex * 2]) / (nowdist - preleng)
                         sndpnt[1] = frtpnt[1] - dist * (frtpnt[1] - pline.Coordinates[vertex * 2 + 1]) / (
-                                nowdist - preleng)
+                                    nowdist - preleng)
                     else:
                         sndpnt[0] = pline.Coordinates[(vertex + 1) * 2] - (dist - nowdist + i) * (
                                 pline.Coordinates[(vertex + 1) * 2] - pline.Coordinates[vertex * 2]) / (i - preleng)
@@ -419,7 +433,7 @@ class DoPath:
         for i in range(len(pline1)):
             if pline1[i].IntersectWith(circle, 0):
                 circle.Delete()
-                pline1.Delete()
+                del pline1
                 return i
 
     def find_dist(self, pline, point, vertex):

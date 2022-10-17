@@ -11,7 +11,7 @@ import time
 from tkinter import messagebox as msg
 
 import AutoPath_TypeConvert as Tc
-from AutoPath_CallBacks import CallBacks
+from AutoPath_CallBacks import CALLBACKS
 
 
 # =========================================================
@@ -21,7 +21,7 @@ class DoPath:
         self.doc = doc
         self.msp = msp
         self.layerobjs = self.create_layer()
-        self.callbacks = CallBacks(self)
+        self.callbacks = CALLBACKS(self)
 
     def do_pendulum(self, select, dirvalue, swingstate_value, chainpath, step, chainbracing, bracing, carnum, pitch,
                     swingleng):

@@ -11,7 +11,7 @@ import tkinter as tk
 
 # =========================================================
 def create_tooltip(widget, text):
-    toolTip = ToolTip(widget)  # create instance of class
+    toolTip = TOOLTIP(widget)  # create instance of class
 
     def enter(event):
         try:
@@ -27,7 +27,7 @@ def create_tooltip(widget, text):
 
 
 # =========================================================
-class ToolTip:
+class TOOLTIP:
     def __init__(self, widget):
         self.widget = widget
         self.tip_window = None

@@ -10,18 +10,11 @@ from tkinter import messagebox as msg
 
 
 # =========================================================
-class CallBacks:
+class CALLBACKS(object):
     def __init__(self, oop):
         self.oop = oop
 
     # Radiobutton Callback
-    def nexten(self):
-        """当工件类型、轨迹类型都选择后，'下一步'按钮变为可用"""
-        if (self.oop.cartype_value.get() == 0) or (self.oop.pathtype_value.get() == 0):
-            self.oop.b_next.configure(state='disabled')
-        else:
-            self.oop.b_next.configure(state='normal')
-
     def quit(self):
         """Exit GUI cleanly"""
         self.oop.win.quit()

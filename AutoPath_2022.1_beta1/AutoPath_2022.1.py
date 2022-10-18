@@ -8,9 +8,9 @@
 import tkinter as tk
 from tkinter import ttk, Menu
 
-from AutoPath_PathWidgets import PATHWIDGETS
-from tkinter import messagebox as msg
 import AutoPath_ToopTip as Tt
+from AutoPath_CallBacks import CALLBACKS
+from AutoPath_DoPath import DOPATH
 
 
 # =========================================================
@@ -21,13 +21,19 @@ class OOP(object):
         self.win.title("AutoPath")
         self.win.geometry('580x410')
         self.win.resizable(False, False)
-        self.menubutton()
+        self.callbacks = CALLBACKS(self)
+        self.doPath = DOPATH(self, self.callbacks.doc, self.callbacks.msp)
+        self.page_menu()
+        style = ttk.Style()
+        style.configure('R.TButton', foreground='red')
+        style.configure('G.TButton', foreground='green')
 
     def page_menu(self):
         """选择想要实现的轨迹类型，生成对应初始化GUI"""
         self.main_frame = ttk.LabelFrame(self.win, text='1.请选择轨迹类型:')
+        self.main_frame.grid(column=0, row=0)
         # Add Frame1_工件类型=======================================
-        menu_frame1 = ttk.LabelFrame(self.main_frame, text='1.请选择工件类型:')
+        menu_frame1 = ttk.LabelFrame(self.main_frame, text='请选择工件类型')
         menu_frame1.grid(column=0, row=0, sticky='WE', padx=8, pady=4)
 
         # Add Radiobutton_工件类型
@@ -35,7 +41,7 @@ class OOP(object):
         cartypes = {'摆杆': 1, '翻转机': 2, '台车': 3}
         for cartype, cartype_num in cartypes.items():
             self.a_cartype = ttk.Radiobutton(menu_frame1, text=cartype, value=cartype_num,
-                                             variable=self.cartype_value, command=self.choose_pathtype)
+                                             variable=self.cartype_value, command=self._choose_pathtype)
             self.a_cartype.grid(column=cartype_num, row=0, sticky=tk.W)
         self.cartype_value.set(0)
 
@@ -43,20 +49,20 @@ class OOP(object):
             child.grid_configure(padx=8, pady=4)
 
         # Add Frame2_轨迹类型=======================================
-        self.menu_frame2 = ttk.LabelFrame(self.main_frame, text='2.请选择轨迹类型:')
+        self.menu_frame2 = ttk.LabelFrame(self.main_frame, text='请选择轨迹类型')
         self.menu_frame2.grid(column=0, row=1, sticky='WE', padx=8, pady=4)
 
         # Add Frame3_确定与退出======================================
         menu_frame3 = ttk.LabelFrame(self.main_frame, text='')
         menu_frame3.grid(column=0, row=2, padx=8, pady=4)
-        self.b_next = ttk.Button(menu_frame3, text='下一步', state='disabled', command=self.menubutton)
+        self.b_next = ttk.Button(menu_frame3, text='下一步', state='disabled', command=self.callbacks.nextbutton)
         self.b_next.grid(column=0, row=0, padx=8, pady=8)
-        ttk.Button(menu_frame3, text='退出', command=self.quit).grid(column=1, row=0, padx=8, pady=8)
+        ttk.Button(menu_frame3, text='退出', command=self.callbacks.quit).grid(column=1, row=0, padx=8, pady=8)
 
         # Add Menu==============================================
-        self.menubar()
+        self._menubar()
 
-    def choose_pathtype(self):
+    def _choose_pathtype(self):
         """根据工件类型，选择轨迹类型"""
         for child in self.menu_frame2.winfo_children():
             child.destroy()
@@ -89,16 +95,17 @@ class OOP(object):
             }
         for pathtype, pathtype_num in pathtypes.items():
             self.a_pathtype = ttk.Radiobutton(self.menu_frame2, text=pathtype, value=pathtype_num,
-                                              variable=self.pathtype_value, command=self.next_enabled())
+                                              variable=self.pathtype_value, command=self.next_enabled)
             self.a_pathtype.grid(column=(pathtype_num - 1) % 4, row=(pathtype_num - 1) // 4, sticky=tk.W)
-        self.pathtype_value.set(1)
+        self.pathtype_value.set(0)
 
         for child in self.menu_frame2.winfo_children():
             child.grid_configure(padx=8, pady=4)
 
     def page_pendulum(self):
         """选择摆杆程序，生成对应初始化GUI"""
-        self.main_frame = ttk.LabelFrame(self.win, text='2.请属于参数:')
+        self.main_frame = ttk.LabelFrame(self.win, text='2.请输入参数:')
+        self.main_frame.grid(column=0, row=0)
         # Add Frame1_图块选择==================================
         pendulum_frame1 = ttk.LabelFrame(self.main_frame, text='图块选择')
         pendulum_frame1.grid(column=0, row=1, sticky='WNS', padx=8, pady=4)
@@ -107,7 +114,7 @@ class OOP(object):
         ttk.Label(pendulum_frame1, text='轨迹线及起点: ').grid(column=0, row=0)
         # Add a Button_选择轨迹线
         self.b_choose_chainpath = ttk.Button(pendulum_frame1, text='单击选择', style='R.TButton',
-                                             command=lambda: self.click_pline('chainpath'))
+                                             command=lambda: self.callbacks.click_pline('chainpath'))
         self.b_choose_chainpath.grid(column=1, row=0)
 
         if self.pathtype_value.get() == 3 or self.pathtype_value.get() == 4:
@@ -115,7 +122,7 @@ class OOP(object):
             ttk.Label(pendulum_frame1, text='摆杆滚轮所在轨迹线: ').grid(column=0, row=1)
             # Add a Button_选择轨迹线
             self.b_choose_rollerpath = ttk.Button(pendulum_frame1, text='单击选择', style='R.TButton',
-                                                  command=lambda: self.click_pline('rollerpath'))
+                                                  command=lambda: self.callbacks.click_pline('rollerpath'))
             self.b_choose_rollerpath.grid(column=1, row=1)
 
         if self.pathtype_value.get() == 5:
@@ -123,7 +130,7 @@ class OOP(object):
             ttk.Label(pendulum_frame1, text='轨迹中心点: ').grid(column=0, row=1)
             # Add a Button_选择轨迹中心点
             self.b_choose_diptank_midpnt = ttk.Button(pendulum_frame1, text='单击选择', style='R.TButton',
-                                                      command=lambda: self.click_point('diptank_midpnt'))
+                                                      command=lambda: self.callbacks.click_point('diptank_midpnt'))
             self.b_choose_diptank_midpnt.grid(column=1, row=1)
 
         # Add a Label_选择工件方向
@@ -154,18 +161,18 @@ class OOP(object):
             # Add a Label_是否绘制包络线
             c_envelope_value = tk.IntVar()
             c_envelope = tk.Checkbutton(pendulum_frame1, text='提取包络线: ', variable=c_envelope_value,
-                                        command=lambda: self.envolope(c_envelope_value.get()))
+                                        command=lambda: self.callbacks.envolope(c_envelope_value.get()))
             c_envelope.grid(column=0, row=4)
             c_envelope.deselect()
             # Add a Button_选择上包络线特征点
             self.b_choose_uenvelope = ttk.Button(pendulum_frame1, text='选择上特征点', state='disabled',
                                                  style='R.TButton',
-                                                 command=lambda: self.click_point('uenvelope'))
+                                                 command=lambda: self.callbacks.click_point('uenvelope'))
             self.b_choose_uenvelope.grid(column=1, row=4)
             # Add a Button_选择下包络线特征点
             self.b_choose_lenvelope = ttk.Button(pendulum_frame1, text='选择下特征点', state='disabled',
                                                  style='R.TButton',
-                                                 command=lambda: self.click_point('lenvelope'))
+                                                 command=lambda: self.callbacks.click_point('lenvelope'))
             self.b_choose_lenvelope.grid(column=2, row=4)
             # 若为仿真动画，禁用包络线选项
             if self.pathtype_value.get() == 2:
@@ -286,7 +293,7 @@ class OOP(object):
             ttk.Label(pendulum_frame4, text='工件全浸点: ').grid(column=2, row=1)
             # Add a Button_选择全浸点
             self.b_choose_immersion = ttk.Button(pendulum_frame4, text='单击选择', style='R.TButton',
-                                                 command=lambda: self.click_point('immersion'))
+                                                 command=lambda: self.callbacks.click_point('immersion'))
             self.b_choose_immersion.grid(column=3, row=1)
 
             for child in pendulum_frame4.winfo_children():
@@ -295,14 +302,14 @@ class OOP(object):
         # Add Frame5_退出====================================
         pendulum_frame5 = ttk.LabelFrame(self.main_frame, text='')
         pendulum_frame5.grid(column=0, row=5, columnspan=2)
-        self.b_previous = ttk.Button(pendulum_frame5, text='上一步', command=self.menubutton)
+        self.b_previous = ttk.Button(pendulum_frame5, text='上一步', command=self.callbacks.previousbutton)
         self.b_previous.grid(column=0, row=0, padx=20, pady=8)
         if self.pathtype_value.get() <= 4:
             self.b_entry = ttk.Button(pendulum_frame5, text='确定',
                                       command=lambda: self.doPath.do_pendulum(self.pathtype_value.get(),
                                                                               self.dirvalue.get(),
                                                                               self.swingstate_value.get(),
-                                                                              self.chainpath,
+                                                                              self.callbacks.chainpath,
                                                                               self.step.get(),
                                                                               self.chainbracing.get(),
                                                                               self.bracing.get(),
@@ -313,28 +320,61 @@ class OOP(object):
             self.b_entry = ttk.Button(pendulum_frame5, text='确定',
                                       command=lambda: self.doPath.do_pendulum_diptank(self.dirvalue.get(),
                                                                                       self.swingmode_value.get(),
-                                                                                      self.chainpath,
-                                                                                      self.diptank_midpnt,
+                                                                                      self.callbacks.chainpath,
+                                                                                      self.callbacks.diptank_midpnt,
                                                                                       self.chainbracing.get(),
                                                                                       self.bracing.get(),
                                                                                       self.pitch.get(),
                                                                                       self.swingleng.get()) - 252.75)
         self.b_entry.grid(column=1, row=0, padx=20, pady=8)
-        self.b_quit = ttk.Button(pendulum_frame5, text='退出', command=self.quit)
+        self.b_quit = ttk.Button(pendulum_frame5, text='退出', command=self.callbacks.quit)
         self.b_quit.grid(column=2, row=0, padx=20, pady=8)
 
         # Add Menu==============================================
-        self.menubar()
+        self._menubar()
 
     def page_shuttle(self):
         """选择翻转机程序，生成对应初始化GUI"""
-        self.main_frame = ttk.LabelFrame(self.win, text='2.请属于参数:')
+        self.main_frame = ttk.LabelFrame(self.win, text='2.请输入参数:')
+        self.main_frame.grid(column=0, row=0)
+        # Add Frame5_退出====================================
+        pendulum_frame5 = ttk.LabelFrame(self.main_frame, text='')
+        pendulum_frame5.grid(column=0, row=5, columnspan=2)
+        self.b_previous = ttk.Button(pendulum_frame5, text='上一步', command=self.callbacks.previousbutton)
+        self.b_previous.grid(column=0, row=0, padx=20, pady=8)
+        if self.pathtype_value.get() <= 4:
+            self.b_entry = ttk.Button(pendulum_frame5, text='确定',
+                                      command=lambda: self.doPath.do_pendulum(self.pathtype_value.get(),
+                                                                              self.dirvalue.get(),
+                                                                              self.swingstate_value.get(),
+                                                                              self.callbacks.chainpath,
+                                                                              self.step.get(),
+                                                                              self.chainbracing.get(),
+                                                                              self.bracing.get(),
+                                                                              self.carnum.get(),
+                                                                              self.pitch.get(),
+                                                                              self.swingleng.get()) - 252.75)
+        elif self.pathtype_value.get() == 5:
+            self.b_entry = ttk.Button(pendulum_frame5, text='确定',
+                                      command=lambda: self.doPath.do_pendulum_diptank(self.dirvalue.get(),
+                                                                                      self.swingmode_value.get(),
+                                                                                      self.callbacks.chainpath,
+                                                                                      self.callbacks.diptank_midpnt,
+                                                                                      self.chainbracing.get(),
+                                                                                      self.bracing.get(),
+                                                                                      self.pitch.get(),
+                                                                                      self.swingleng.get()) - 252.75)
+        self.b_entry.grid(column=1, row=0, padx=20, pady=8)
+        self.b_quit = ttk.Button(pendulum_frame5, text='退出', command=self.callbacks.quit)
+        self.b_quit.grid(column=2, row=0, padx=20, pady=8)
+
         # Add Menu==============================================
-        self.menubar()
+        self._menubar()
 
     def page_trolley2(self):
         """选择2台车程序，生成对应初始化GUI"""
-        self.main_frame = ttk.LabelFrame(self.win, text='2.请属于参数:')
+        self.main_frame = ttk.LabelFrame(self.win, text='2.请输入参数:')
+        self.main_frame.grid(column=0, row=0)
         # Add Frame1_图块选择==================================
         trolley2_frame1 = ttk.LabelFrame(self.main_frame, text='图块选择')
         trolley2_frame1.grid(column=0, row=0, sticky='WNS', padx=8, pady=4)
@@ -343,14 +383,14 @@ class OOP(object):
         ttk.Label(trolley2_frame1, text='工件: ').grid(column=0, row=0)
         # Add a Button_选择工件
         self.b_choose_car = ttk.Button(trolley2_frame1, text='单击选择', style='R.TButton',
-                                       command=lambda: self.click_block('car'))
+                                       command=lambda: self.callbacks.click_block('car'))
         self.b_choose_car.grid(column=1, row=0)
 
         # Add a Label_选择轨迹线
         ttk.Label(trolley2_frame1, text='轨迹线及起点: ').grid(column=0, row=1)
         # Add a Button_选择轨迹线
         self.b_choose_chainpath = ttk.Button(trolley2_frame1, text='单击选择', style='R.TButton',
-                                             command=lambda: self.click_pline('chainpath'))
+                                             command=lambda: self.callbacks.click_pline('chainpath'))
         self.b_choose_chainpath.grid(column=1, row=1)
 
         # Add a Label_选择工件方向
@@ -411,28 +451,44 @@ class OOP(object):
         # Add Frame3_开始与退出========================================
         trolley2_frame3 = ttk.LabelFrame(self.main_frame, text='')
         trolley2_frame3.grid(column=0, row=1, columnspan=2)
-        self.b_previous = ttk.Button(trolley2_frame3, text='上一步', command=self.menubutton)
+        self.b_previous = ttk.Button(trolley2_frame3, text='上一步', command=self.callbacks.previousbutton)
         self.b_previous.grid(column=0, row=0, padx=20, pady=8)
         self.b_entry = ttk.Button(trolley2_frame3, text='确定',
                                   command=lambda: self.doPath.do_2trolley(self.pathtype_value.get(),
-                                                                          self.dirvalue.get(), self.car_name,
-                                                                          self.chainpath, self.step.get(),
+                                                                          self.dirvalue.get(), self.callbacks.car_name,
+                                                                          self.callbacks.chainpath, self.step.get(),
                                                                           self.bracing.get(), self.carnum.get(),
                                                                           self.pitch.get()))
         self.b_entry.grid(column=1, row=0, padx=20, pady=8)
-        self.b_quit = ttk.Button(trolley2_frame3, text='退出', command=self.quit)
+        self.b_quit = ttk.Button(trolley2_frame3, text='退出', command=self.callbacks.quit)
         self.b_quit.grid(column=2, row=0, padx=20, pady=8)
 
         # Add Menu==============================================
-        self.menubar()
+        self._menubar()
 
     def page_trolley4(self):
         """选择4台车程序，生成对应初始化GUI"""
-        self.main_frame = ttk.LabelFrame(self.win, text='2.请属于参数:')
-        # Add Menu==============================================
-        self.menubar()
+        self.main_frame = ttk.LabelFrame(self.win, text='2.请输入参数:')
+        self.main_frame.grid(column=0, row=0)
+        # Add Frame3_开始与退出========================================
+        trolley2_frame3 = ttk.LabelFrame(self.main_frame, text='')
+        trolley2_frame3.grid(column=0, row=1, columnspan=2)
+        self.b_previous = ttk.Button(trolley2_frame3, text='上一步', command=self.callbacks.previousbutton)
+        self.b_previous.grid(column=0, row=0, padx=20, pady=8)
+        self.b_entry = ttk.Button(trolley2_frame3, text='确定',
+                                  command=lambda: self.doPath.do_2trolley(self.pathtype_value.get(),
+                                                                          self.dirvalue.get(), self.callbacks.car_name,
+                                                                          self.callbacks.chainpath, self.step.get(),
+                                                                          self.bracing.get(), self.carnum.get(),
+                                                                          self.pitch.get()))
+        self.b_entry.grid(column=1, row=0, padx=20, pady=8)
+        self.b_quit = ttk.Button(trolley2_frame3, text='退出', command=self.callbacks.quit)
+        self.b_quit.grid(column=2, row=0, padx=20, pady=8)
 
-    def menubar(self):
+        # Add Menu==============================================
+        self._menubar()
+
+    def _menubar(self):
         """添加菜单栏"""
         menu_bar = Menu(self.win)
         self.win.config(menu=menu_bar)
@@ -440,30 +496,13 @@ class OOP(object):
         file_menu = Menu(menu_bar, tearoff=0)
         menu_bar.add_cascade(label='文件', menu=file_menu)
         file_menu.add_separator()
-        file_menu.add_command(label='退出', command=self.quit)
+        file_menu.add_command(label='退出', command=self.callbacks.quit)
         # Add Help Menu
         help_menu = Menu(menu_bar, tearoff=0)
         menu_bar.add_cascade(label='帮助', menu=help_menu)
         help_menu.add_command(label='入门指南')
         help_menu.add_separator()
-        help_menu.add_command(label='关于', command=self.aboutmsg)
-
-    def menubutton(self):
-        """根据选择的工件类型、轨迹类型，生成对应初始化GUI"""
-        self.page_select = self.cartype_value.get() + self.pathtype_value.get()
-        if self.cartype_value.get() == 10:  # 摆杆
-            self.main_frame.destroy()
-            self.page_pendulum()
-        elif self.cartype_value.get() == 20:  # 翻转机
-            self.main_frame.destroy()
-            self.page_shuttle()
-        else:  # 台车
-            if self.pathtype_value.get() <= 2:  # 2台车
-                self.main_frame.destroy()
-                self.page_trolley2()
-            else:  # 4台车
-                self.main_frame.destroy()
-                self.page_trolley4()
+        help_menu.add_command(label='关于', command=self.callbacks.aboutmsg)
 
     def next_enabled(self):
         """当工件类型、轨迹类型都选择后，'下一步'按钮变为可用"""
@@ -472,19 +511,6 @@ class OOP(object):
         else:
             self.b_next.configure(state='normal')
 
-    def quit(self):
-        """Exit GUI cleanly"""
-        self.win.quit()
-        self.win.destroy()
-        exit()
-
-    @staticmethod
-    def aboutmsg():
-        """About Menu"""
-        msg.showinfo('关于 AutoPath',
-                     'AutoPath 2022.1 Beta1\n\n'
-                     'Copyright \u00a9 2022 LZH. All Rights Reserved.\n\n'
-                     'Supporting Autodesk CAD: v2010-v2022. Other versions are not tested.')
 
 # =========================================================
 if __name__ == '__main__':

@@ -11,17 +11,15 @@ import time
 from tkinter import messagebox as msg
 
 import AutoPath_TypeConvert as Tc
-from AutoPath_CallBacks import CALLBACKS
 
 
 # =========================================================
-class DoPath:
+class DOPATH:
     def __init__(self, oop, doc, msp):
         self.oop = oop
         self.doc = doc
         self.msp = msp
         self.layerobjs = self.create_layer()
-        self.callbacks = CALLBACKS(self)
 
     def do_pendulum(self, select, dirvalue, swingstate_value, chainpath, step, chainbracing, bracing, carnum, pitch,
                     swingleng):
@@ -37,10 +35,12 @@ class DoPath:
         else:
             swingstate_value_text = '模式：后摆杆竖直'
         if select % 10 == 1:
-            inserttext = swingstate_value_text + '\n轨道长度：' + str(round(self.leng[-1], 2)) + 'mm\n' + '轨迹步长：' + str(
+            inserttext = swingstate_value_text + '\n轨道长度：' + str(
+                round(self.leng[-1], 2)) + 'mm\n' + '轨迹步长：' + str(
                 step) + 'mm\n' + '摆杆间距：' + str(bracing) + 'mm\n' + '摆杆长度：' + str(swingleng) + 'mm'
         else:
-            inserttext = swingstate_value_text + '\n轨道长度：' + str(round(self.leng[-1], 2)) + 'mm\n' + '工件节距：' + str(
+            inserttext = swingstate_value_text + '\n轨道长度：' + str(
+                round(self.leng[-1], 2)) + 'mm\n' + '工件节距：' + str(
                 pitch) + 'mm\n' + '摆杆间距：' + str(bracing) + 'mm\n' + '摆杆长度：' + str(swingleng + 252.75) + 'mm'
         self.insert_mt(chainpath, inserttext)
         self.j = 1
@@ -102,12 +102,13 @@ class DoPath:
         if (dist_of_plinestart <= (bracing + (pitch - bracing) / 2 + chainbracing)) or (
                 (self.leng[-1] - dist_of_plinestart) <= (bracing + (pitch - bracing) / 2 + chainbracing)):
             if msg.showerror('错误', '请加长轨迹线！'):
-                self.callbacks.quit()
+                self.oop.menubutton.quit()
         if swingmode_value == 1:
             swingmode_value_text = '模式：内侧摆杆竖直'
         else:
             swingmode_value_text = '模式：外侧摆杆竖直'
-        inserttext = '浸入即出槽分析\n' + swingmode_value_text + '\n摆杆间距：' + str(bracing) + 'mm\n' + '摆杆长度：' + str(
+        inserttext = '浸入即出槽分析\n' + swingmode_value_text + '\n摆杆间距：' + str(
+            bracing) + 'mm\n' + '摆杆长度：' + str(
             swingleng) + 'mm\n' + '工件节距：' + str(pitch) + 'mm'
         self.insert_mt(chainpath, inserttext)
         self.jj = 0  # 判断是否为第一次插入
@@ -352,7 +353,7 @@ class DoPath:
                     if i >= nowdist:
                         sndpnt[0] = frtpnt[0] - dist * (frtpnt[0] - pline.Coordinates[vertex * 2]) / (nowdist - preleng)
                         sndpnt[1] = frtpnt[1] - dist * (frtpnt[1] - pline.Coordinates[vertex * 2 + 1]) / (
-                                    nowdist - preleng)
+                                nowdist - preleng)
                     else:
                         sndpnt[0] = pline.Coordinates[(vertex + 1) * 2] - (dist - nowdist + i) * (
                                 pline.Coordinates[(vertex + 1) * 2] - pline.Coordinates[vertex * 2]) / (i - preleng)
@@ -428,7 +429,7 @@ class DoPath:
         if not pline.IntersectWith(circle, 0):
             circle.Delete()
             if msg.showerror('错误', '选择的中点不在轨迹线上！'):
-                self.callbacks.quit()
+                self.oop.menubutton.quit()
         pline1 = pline.Explode()
         for i in range(len(pline1)):
             if pline1[i].IntersectWith(circle, 0):

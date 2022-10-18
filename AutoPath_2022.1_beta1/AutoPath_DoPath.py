@@ -37,7 +37,7 @@ class DOPATH:
         if select % 10 == 1:
             inserttext = swingstate_value_text + '\n轨道长度：' + str(
                 round(self.leng[-1], 2)) + 'mm\n' + '轨迹步长：' + str(
-                step) + 'mm\n' + '摆杆间距：' + str(bracing) + 'mm\n' + '摆杆长度：' + str(swingleng) + 'mm'
+                step) + 'mm\n' + '摆杆间距：' + str(bracing) + 'mm\n' + '摆杆长度：' + str(swingleng + 252.75) + 'mm'
         else:
             inserttext = swingstate_value_text + '\n轨道长度：' + str(
                 round(self.leng[-1], 2)) + 'mm\n' + '工件节距：' + str(
@@ -117,20 +117,27 @@ class DOPATH:
             fswing = []
             bswing = []
             car = []
+            # if num == 0:  # 后车
+            #     nowdist = dist_of_plinestart - (pitch - bracing) / 2
+            # else:  # 前车
+            #     nowdist = dist_of_plinestart + (pitch + bracing) / 2
             if num == 0:  # 后车
-                nowdist = dist_of_plinestart - (pitch - bracing) / 2
+                nowdist = (pitch - bracing) / 2
             else:  # 前车
-                nowdist = dist_of_plinestart + bracing + (pitch - bracing) / 2
+                nowdist = -(pitch + bracing) / 2
             layernum = (num + 1) % len(self.layerobjs)
             self.doc.ActiveLayer = self.doc.Layers(self.layerobjs[layernum].Name)
-            inspnt0 = self.find_distpnt(chainpath, self.leng, 0.0001, chainpath.Coordinates[0:2], -nowdist)
+            # inspnt0 = self.find_distpnt(chainpath, self.leng, 0.0001, chainpath.Coordinates[0:2], -nowdist)
+            inspnt0 = self.find_distpnt(chainpath, self.leng, dist_of_plinestart, diptank_midpnt[:2], nowdist)
             self.swingpnt = []
             for swingnum in range(2):
                 if swingnum == 0:
-                    inspnt1 = inspnt0
-                if swingnum == 1:
-                    inspnt1 = self.find_distpnt(chainpath, self.leng, nowdist, inspnt0, bracing)
-                self.find_insertpnt(chainpath, chainbracing, nowdist - swingnum * bracing, inspnt1, inspnt0)
+                    inspnt1 = inspnt0  # 前链板插入点
+                else:
+                    inspnt1 = self.find_distpnt(chainpath, self.leng, dist_of_plinestart - nowdist, inspnt0,
+                                                bracing)  # 后链板插入点
+                self.find_insertpnt(chainpath, chainbracing, dist_of_plinestart - nowdist - swingnum * bracing, inspnt1,
+                                    inspnt0)
                 self.insert_block('ChainPlate', chainplate, swingnum)
                 self.circlebr.Delete()
                 self.swingpnt.append(self.find_isotrianglepnt(inspnt1))
@@ -307,6 +314,7 @@ class DOPATH:
 
     def pathpnt(self, pline, step):
         """沿轨道线按步长求插入点"""
+        steppnt = []
         try:
             self.doc.SelectionSets.Item("SS1").Delete()
         except BaseException as e:
@@ -350,14 +358,14 @@ class DOPATH:
                 else:
                     preleng = leng[vertex - 1]
                 if bulge == 0:
-                    if i >= nowdist:
+                    if (i >= nowdist and dist >= 0) or (preleng <= nowdist and dist < 0):
                         sndpnt[0] = frtpnt[0] - dist * (frtpnt[0] - pline.Coordinates[vertex * 2]) / (nowdist - preleng)
                         sndpnt[1] = frtpnt[1] - dist * (frtpnt[1] - pline.Coordinates[vertex * 2 + 1]) / (
                                 nowdist - preleng)
-                    else:
-                        sndpnt[0] = pline.Coordinates[(vertex + 1) * 2] - (dist - nowdist + i) * (
+                    elif (i < nowdist and dist >= 0) or (preleng > nowdist and dist < 0):
+                        sndpnt[0] = pline.Coordinates[(vertex + 1) * 2] - (i - nowdist + dist) * (
                                 pline.Coordinates[(vertex + 1) * 2] - pline.Coordinates[vertex * 2]) / (i - preleng)
-                        sndpnt[1] = pline.Coordinates[(vertex + 1) * 2 + 1] - (dist - nowdist + i) * (
+                        sndpnt[1] = pline.Coordinates[(vertex + 1) * 2 + 1] - (i - nowdist + dist) * (
                                 pline.Coordinates[(vertex + 1) * 2 + 1] - pline.Coordinates[vertex * 2 + 1]) / (
                                             i - preleng)
                 else:

@@ -315,7 +315,7 @@ class OOP(object):
                                                                               self.bracing.get(),
                                                                               self.carnum.get(),
                                                                               self.pitch.get(),
-                                                                              self.swingleng.get()) - 252.75)
+                                                                              self.swingleng.get() - 252.75))
         elif self.pathtype_value.get() == 5:
             self.b_entry = ttk.Button(pendulum_frame5, text='确定',
                                       command=lambda: self.doPath.do_pendulum_diptank(self.dirvalue.get(),
@@ -325,7 +325,7 @@ class OOP(object):
                                                                                       self.chainbracing.get(),
                                                                                       self.bracing.get(),
                                                                                       self.pitch.get(),
-                                                                                      self.swingleng.get()) - 252.75)
+                                                                                      self.swingleng.get() - 252.75))
         self.b_entry.grid(column=1, row=0, padx=20, pady=8)
         self.b_quit = ttk.Button(pendulum_frame5, text='退出', command=self.callbacks.quit)
         self.b_quit.grid(column=2, row=0, padx=20, pady=8)

@@ -3,7 +3,7 @@
 """
 @author: LZH
 """
-
+import time
 # imports==========
 import tkinter as tk
 from tkinter import ttk, Menu
@@ -19,7 +19,7 @@ class OOP(object):
         # Create Instance
         self.win = tk.Tk()
         self.win.title("AutoPath")
-        self.win.geometry('580x410')
+        self.win.geometry('580x450')
         self.win.resizable(False, False)
         self.callbacks = CALLBACKS(self)
         self.doPath = DOPATH(self, self.callbacks.doc, self.callbacks.msp)
@@ -95,7 +95,7 @@ class OOP(object):
             }
         for pathtype, pathtype_num in pathtypes.items():
             self.a_pathtype = ttk.Radiobutton(self.menu_frame2, text=pathtype, value=pathtype_num,
-                                              variable=self.pathtype_value, command=self.next_enabled)
+                                              variable=self.pathtype_value, command=self._next_enabled)
             self.a_pathtype.grid(column=(pathtype_num - 1) % 4, row=(pathtype_num - 1) // 4, sticky=tk.W)
         self.pathtype_value.set(0)
 
@@ -302,8 +302,9 @@ class OOP(object):
         # Add Frame5_退出====================================
         pendulum_frame5 = ttk.LabelFrame(self.main_frame, text='')
         pendulum_frame5.grid(column=0, row=5, columnspan=2)
+        self._progressbar(pendulum_frame5)
         self.b_previous = ttk.Button(pendulum_frame5, text='上一步', command=self.callbacks.previousbutton)
-        self.b_previous.grid(column=0, row=0, padx=20, pady=8)
+        self.b_previous.grid(column=0, row=1, padx=20, pady=8)
         if self.pathtype_value.get() <= 4:
             self.b_entry = ttk.Button(pendulum_frame5, text='确定',
                                       command=lambda: self.doPath.do_pendulum(self.pathtype_value.get(),
@@ -326,9 +327,11 @@ class OOP(object):
                                                                                       self.bracing.get(),
                                                                                       self.pitch.get(),
                                                                                       self.swingleng.get() - 252.75))
-        self.b_entry.grid(column=1, row=0, padx=20, pady=8)
+        elif self.pathtype_value.get() == 6:
+            self.b_entry = ttk.Button(pendulum_frame5, text='确定')
+        self.b_entry.grid(column=1, row=1, padx=20, pady=8)
         self.b_quit = ttk.Button(pendulum_frame5, text='退出', command=self.callbacks.quit)
-        self.b_quit.grid(column=2, row=0, padx=20, pady=8)
+        self.b_quit.grid(column=2, row=1, padx=20, pady=8)
 
         # Add Menu==============================================
         self._menubar()
@@ -340,8 +343,9 @@ class OOP(object):
         # Add Frame5_退出====================================
         pendulum_frame5 = ttk.LabelFrame(self.main_frame, text='')
         pendulum_frame5.grid(column=0, row=5, columnspan=2)
+        self._progressbar(pendulum_frame5)
         self.b_previous = ttk.Button(pendulum_frame5, text='上一步', command=self.callbacks.previousbutton)
-        self.b_previous.grid(column=0, row=0, padx=20, pady=8)
+        self.b_previous.grid(column=0, row=1, padx=20, pady=8)
         if self.pathtype_value.get() <= 4:
             self.b_entry = ttk.Button(pendulum_frame5, text='确定',
                                       command=lambda: self.doPath.do_pendulum(self.pathtype_value.get(),
@@ -364,9 +368,9 @@ class OOP(object):
                                                                                       self.bracing.get(),
                                                                                       self.pitch.get(),
                                                                                       self.swingleng.get()) - 252.75)
-        self.b_entry.grid(column=1, row=0, padx=20, pady=8)
+        self.b_entry.grid(column=1, row=1, padx=20, pady=8)
         self.b_quit = ttk.Button(pendulum_frame5, text='退出', command=self.callbacks.quit)
-        self.b_quit.grid(column=2, row=0, padx=20, pady=8)
+        self.b_quit.grid(column=2, row=1, padx=20, pady=8)
 
         # Add Menu==============================================
         self._menubar()
@@ -451,17 +455,18 @@ class OOP(object):
         # Add Frame3_开始与退出========================================
         trolley2_frame3 = ttk.LabelFrame(self.main_frame, text='')
         trolley2_frame3.grid(column=0, row=1, columnspan=2)
+        self._progressbar(trolley2_frame3)
         self.b_previous = ttk.Button(trolley2_frame3, text='上一步', command=self.callbacks.previousbutton)
-        self.b_previous.grid(column=0, row=0, padx=20, pady=8)
+        self.b_previous.grid(column=0, row=1, padx=20, pady=8)
         self.b_entry = ttk.Button(trolley2_frame3, text='确定',
                                   command=lambda: self.doPath.do_2trolley(self.pathtype_value.get(),
                                                                           self.dirvalue.get(), self.callbacks.car_name,
                                                                           self.callbacks.chainpath, self.step.get(),
                                                                           self.bracing.get(), self.carnum.get(),
                                                                           self.pitch.get()))
-        self.b_entry.grid(column=1, row=0, padx=20, pady=8)
+        self.b_entry.grid(column=1, row=1, padx=20, pady=8)
         self.b_quit = ttk.Button(trolley2_frame3, text='退出', command=self.callbacks.quit)
-        self.b_quit.grid(column=2, row=0, padx=20, pady=8)
+        self.b_quit.grid(column=2, row=1, padx=20, pady=8)
 
         # Add Menu==============================================
         self._menubar()
@@ -473,17 +478,18 @@ class OOP(object):
         # Add Frame3_开始与退出========================================
         trolley2_frame3 = ttk.LabelFrame(self.main_frame, text='')
         trolley2_frame3.grid(column=0, row=1, columnspan=2)
+        self._progressbar(trolley2_frame3)
         self.b_previous = ttk.Button(trolley2_frame3, text='上一步', command=self.callbacks.previousbutton)
-        self.b_previous.grid(column=0, row=0, padx=20, pady=8)
+        self.b_previous.grid(column=0, row=1, padx=20, pady=8)
         self.b_entry = ttk.Button(trolley2_frame3, text='确定',
                                   command=lambda: self.doPath.do_2trolley(self.pathtype_value.get(),
                                                                           self.dirvalue.get(), self.callbacks.car_name,
                                                                           self.callbacks.chainpath, self.step.get(),
                                                                           self.bracing.get(), self.carnum.get(),
                                                                           self.pitch.get()))
-        self.b_entry.grid(column=1, row=0, padx=20, pady=8)
+        self.b_entry.grid(column=1, row=1, padx=20, pady=8)
         self.b_quit = ttk.Button(trolley2_frame3, text='退出', command=self.callbacks.quit)
-        self.b_quit.grid(column=2, row=0, padx=20, pady=8)
+        self.b_quit.grid(column=2, row=1, padx=20, pady=8)
 
         # Add Menu==============================================
         self._menubar()
@@ -504,12 +510,31 @@ class OOP(object):
         help_menu.add_separator()
         help_menu.add_command(label='关于', command=self.callbacks.aboutmsg)
 
-    def next_enabled(self):
+    def _next_enabled(self):
         """当工件类型、轨迹类型都选择后，'下一步'按钮变为可用"""
         if (self.cartype_value.get() == 0) or (self.pathtype_value.get() == 0):
             self.b_next.configure(state='disabled')
         else:
             self.b_next.configure(state='normal')
+
+    def _progressbar(self, frame):
+        """初始化进度条"""
+        self.pb = ttk.Progressbar(frame, length=210, mode='determinate', value=0)
+        self.pb.grid(column=0, row=0, columnspan=2, padx=20, pady=8)
+        self.pb_value = tk.StringVar()
+        self.pb_value.set('0%')
+        self.l_pb = ttk.Label(frame, textvariable=self.pb_value)
+        self.l_pb.grid(column=2, row=0, padx=20, pady=8)
+
+    def update_progressbar(self, process_value, finish=0):
+        """更新进度条"""
+        self.pb['value'] = process_value
+        if finish:
+            self.pb_value.set('完成')
+        else:
+            self.pb_value.set(f"{process_value}%")
+        self.win.update()
+        time.sleep(0.1)
 
 
 # =========================================================

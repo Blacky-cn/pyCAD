@@ -3,8 +3,8 @@
 block_cipher = None
 
 
-a = Analysis(['AutoPath_2021.1.py'],
-             pathex=['C:\\Users\\6227\\PycharmProjects\\pycad\\AutoPath_2021.1_beta1'],
+a = Analysis(['AutoPath_2022.1.py'],
+             pathex=['C:\\Users\\6227\\PycharmProjects\\pycad\\AutoPath_2022.1_beta1'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -23,7 +23,7 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           [],
-          name='AutoPath_2021.1',
+          name='AutoPath_2022.1',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,

@@ -299,7 +299,7 @@ class OOP(object):
             for child in pendulum_frame4.winfo_children():
                 child.grid_configure(sticky=tk.W, padx=8, pady=4)
 
-        # Add Frame5_退出====================================
+        # Add Frame5_确认与退出====================================
         pendulum_frame5 = ttk.LabelFrame(self.main_frame, text='')
         pendulum_frame5.grid(column=0, row=5, columnspan=2)
         self._progressbar(pendulum_frame5)
@@ -390,22 +390,31 @@ class OOP(object):
                                        command=lambda: self.callbacks.click_block('car'))
         self.b_choose_car.grid(column=1, row=0)
 
-        # Add a Label_选择轨迹线
-        ttk.Label(trolley2_frame1, text='轨迹线及起点: ').grid(column=0, row=1)
-        # Add a Button_选择轨迹线
+        # Add a Label_选择链条中心线
+        ttk.Label(trolley2_frame1, text='链条中心线及起点: ').grid(column=0, row=1)
+        # Add a Button_选择链条中心线
         self.b_choose_chainpath = ttk.Button(trolley2_frame1, text='单击选择', style='R.TButton',
                                              command=lambda: self.callbacks.click_pline('chainpath'))
         self.b_choose_chainpath.grid(column=1, row=1)
 
+        # Add a Label_选择铰接点中心线
+        ttk.Label(trolley2_frame1, text='铰接点中心线及起点: ').grid(column=0, row=2)
+        # Add a Button_选择铰接点中心线
+        self.b_choose_hinglepath = ttk.Button(trolley2_frame1, text='单击选择', style='R.TButton',
+                                              command=lambda: self.callbacks.click_pline('hinglepath'))
+        self.b_choose_hinglepath.grid(column=1, row=2)
+        # Add a Tooltip_提示框
+        Tt.create_tooltip(self.b_choose_hinglepath, '链条与铰接点中心线起点需为同一方向')
+
         # Add a Label_选择工件方向
-        ttk.Label(trolley2_frame1, text='工件块方向: ').grid(column=0, row=2)
+        ttk.Label(trolley2_frame1, text='工件块方向: ').grid(column=0, row=3)
         # Add a Radiobutton_选择工件方向
         self.dirvalue = tk.IntVar()
         self.dirvalue.set(1)
         dirs = {'右': 1, '左': 2}
         for cardir, cardir_num in dirs.items():
             a31 = ttk.Radiobutton(trolley2_frame1, text=cardir, value=cardir_num, variable=self.dirvalue)
-            a31.grid(column=cardir_num, row=2)
+            a31.grid(column=cardir_num, row=3)
 
         for child in trolley2_frame1.winfo_children():
             child.grid_configure(sticky=tk.W, padx=8, pady=4)
@@ -461,7 +470,8 @@ class OOP(object):
         self.b_entry = ttk.Button(trolley2_frame3, text='确定',
                                   command=lambda: self.doPath.do_2trolley(self.pathtype_value.get(),
                                                                           self.dirvalue.get(), self.callbacks.car_name,
-                                                                          self.callbacks.chainpath, self.step.get(),
+                                                                          self.callbacks.chainpath,
+                                                                          self.callbacks.hinglepath, self.step.get(),
                                                                           self.bracing.get(), self.carnum.get(),
                                                                           self.pitch.get()))
         self.b_entry.grid(column=1, row=1, padx=20, pady=8)
@@ -481,12 +491,7 @@ class OOP(object):
         self._progressbar(trolley2_frame3)
         self.b_previous = ttk.Button(trolley2_frame3, text='上一步', command=self.callbacks.previousbutton)
         self.b_previous.grid(column=0, row=1, padx=20, pady=8)
-        self.b_entry = ttk.Button(trolley2_frame3, text='确定',
-                                  command=lambda: self.doPath.do_2trolley(self.pathtype_value.get(),
-                                                                          self.dirvalue.get(), self.callbacks.car_name,
-                                                                          self.callbacks.chainpath, self.step.get(),
-                                                                          self.bracing.get(), self.carnum.get(),
-                                                                          self.pitch.get()))
+        self.b_entry = ttk.Button(trolley2_frame3, text='确定')
         self.b_entry.grid(column=1, row=1, padx=20, pady=8)
         self.b_quit = ttk.Button(trolley2_frame3, text='退出', command=self.callbacks.quit)
         self.b_quit.grid(column=2, row=1, padx=20, pady=8)

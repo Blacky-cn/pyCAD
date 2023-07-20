@@ -61,10 +61,10 @@ class CALLBACKS:
     @staticmethod
     def aboutmsg():
         """About Menu"""
-        msg.showinfo('关于 AutoPath',
-                     'AutoPath 2021.1.1 Beta\n\n'
-                     'Copyright \u00a9 2021 LZH. All Rights Reserved.\n\n'
-                     'Supporting Autodesk CAD: v2010-v2020. Other versions are not tested.')
+        msg.showinfo('关于 AE-Painting AutoPath',
+                     'AutoPath 2022.1 Beta\n\n'
+                     'Copyright \u00a9 2022 LZH. All Rights Reserved.\n\n'
+                     'Supporting Autodesk CAD: v2010-v2022. Other versions are not tested.')
 
     def click_block(self, block_name):
         """选择图块"""
@@ -77,15 +77,6 @@ class CALLBACKS:
         if block_name == 'car':
             self.car_name = block[0].Name
             self.oop.b_choose_car.configure(style='G.TButton', text='已选择')
-        # elif block_name == 'chainplate':
-        #     self.chainplate = block[0]
-        #     self.b_choose_chainplate.configure(style='G.TButton', text='已选择')
-        # elif block_name == 'fswing':
-        #     self.fswing = block[0]
-        #     self.b_choose_fswing.configure(style='G.TButton', text='已选择')
-        # elif block_name == 'bswing':
-        #     self.bswing = block[0]
-        #     self.b_choose_bswing.configure(style='G.TButton', text='已选择')
 
     def click_pline(self, pline_name):
         """选择轨道线"""
@@ -95,7 +86,7 @@ class CALLBACKS:
             msg.showerror('错误', '您选择的不是多段线，\n请重新选择！')
             # time.sleep(0.1)
             pline = self.doc.Utility.GetEntity()
-        if pline_name == 'chainpath':
+        if pline_name == 'chainpath' or pline_name == 'hinglepath':
             pline_pnt = list(pline[0].Coordinates[:])  # 获取多段线各顶点坐标
             pline_vertex = len(pline_pnt) // 2
             pllayer, pltype, plcw = pline[0].Layer, pline[0].Linetype, pline[0].ConstantWidth
@@ -135,8 +126,12 @@ class CALLBACKS:
                 rev2 = 1  # 指定起点相同
                 pline1 = pline[0]
             rev = rev1 * rev2
-            self.chainpath, self.chainpath_vertex, self.chainpath_rev = pline1, pline_vertex, rev
-            self.oop.b_choose_chainpath.configure(style='G.TButton', text='已选择')
+            if pline_name == 'chainpath':
+                self.chainpath, self.chainpath_vertex, self.chainpath_rev = pline1, pline_vertex, rev
+                self.oop.b_choose_chainpath.configure(style='G.TButton', text='已选择')
+            elif pline_name == 'hinglepath':
+                self.hinglepath, self.hinglepath_vertex, self.hinglepath_rev = pline1, pline_vertex, rev
+                self.oop.b_choose_hinglepath.configure(style='G.TButton', text='已选择')
         elif pline_name == 'rollerpath':
             self.rollerpath = pline[0]  # 获取滚轮所在轨迹线
             self.oop.b_choose_rollerpath.configure(style='G.TButton', text='已选择')

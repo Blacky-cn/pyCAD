@@ -51,7 +51,7 @@ def cal_drawing(f_list, wincad):
         frame_exist, title_exist, framesize = 0, 0, 0
         time.sleep(0.5)
         for entity in slt:
-            if entity.Name == 'sbtq' or entity.Name == 'tq5':
+            if entity.Name == 'sbtq' or entity.Name == 'tq5'or entity.Name == '5&6-new':
                 point1, point2 = entity.GetBoundingBox()
                 title_length = point2[0] - point1[0]
                 title_height = point2[1] - point1[1]
@@ -66,7 +66,6 @@ def cal_drawing(f_list, wincad):
                 frame_length = point3[0] - point4[0]
                 frame_height = point3[1] - point4[1]
                 frame_exist = 2
-                framesize = 1
         slt.Delete()
         doc.Close()
         file_name = os.path.split(i)

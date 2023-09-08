@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 @author: LZH
@@ -117,7 +117,7 @@ class OOP(object):
                                              command=lambda: self.callbacks.click_pline('chainpath'))
         self.b_choose_chainpath.grid(column=1, row=0)
 
-        if self.pathtype_value.get() == 3 or self.pathtype_value.get() == 4:
+        if self.pathtype_value.get() in [3, 4]:
             # Add a Label_选择轨迹线
             ttk.Label(pendulum_frame1, text='摆杆滚轮所在轨迹线: ').grid(column=0, row=1)
             # Add a Button_选择轨迹线
@@ -140,24 +140,25 @@ class OOP(object):
         Tt.create_tooltip(l_dir, '工件块、链板块与摆杆块方向需一致')
         # Add Radiobutton_选择工件方向
         self.dirvalue = tk.IntVar()
-        self.dirvalue.set(1)
+        self.dirvalue.set(2)
         cardirs = {'右': 1, '左': 2}
         for cardir, cardir_num in cardirs.items():
             rb_dir = ttk.Radiobutton(pendulum_frame1, text=cardir, value=cardir_num, variable=self.dirvalue)
             rb_dir.grid(column=cardir_num, row=2)
 
-        if self.pathtype_value.get() == 1 or self.pathtype_value.get() == 2:
+        if self.pathtype_value.get() in [1, 2, 6]:
             # Add a Label_选择摆杆状态
             ttk.Label(pendulum_frame1, text='摆杆状态: ').grid(column=0, row=3)
             # Add Radiobutton_选择摆杆状态
             self.swingstate_value = tk.IntVar()
-            self.swingstate_value.set(1)
+            self.swingstate_value.set(2)
             swingstates = {'前摆杆竖直': 1, '后摆杆竖直': 2}
             for swingstate, swingstate_num in swingstates.items():
                 rb_swingstate = ttk.Radiobutton(pendulum_frame1, text=swingstate, value=swingstate_num,
                                                 variable=self.swingstate_value)
                 rb_swingstate.grid(column=swingstate_num, row=3)
 
+        if self.pathtype_value.get() == 1:
             # Add a Label_是否绘制包络线
             c_envelope_value = tk.IntVar()
             c_envelope = tk.Checkbutton(pendulum_frame1, text='提取包络线: ', variable=c_envelope_value,
@@ -174,10 +175,10 @@ class OOP(object):
                                                  style='R.TButton',
                                                  command=lambda: self.callbacks.click_point('lenvelope'))
             self.b_choose_lenvelope.grid(column=2, row=4)
-            # 若为仿真动画，禁用包络线选项
-            if self.pathtype_value.get() == 2:
-                c_envelope.configure(state='disabled')
-                c_envelope.deselect()
+            # # 若为仿真动画，禁用包络线选项
+            # if self.pathtype_value.get() == 2:
+            #     c_envelope.configure(state='disabled')
+            #     c_envelope.deselect()
 
         for child in pendulum_frame1.winfo_children():
             child.grid_configure(sticky=tk.W, padx=8, pady=4)
@@ -198,7 +199,7 @@ class OOP(object):
         self.bracing = tk.DoubleVar()
         # Add an Entry_摆杆间距
         ttk.Entry(pendulum_frame2, width=12, textvariable=self.bracing).grid(column=1, row=1)
-        self.bracing.set(3250)
+        self.bracing.set(3500)
 
         # Add a Label_摆杆长度
         l_swingleng = tk.Label(pendulum_frame2, text='摆杆长度(mm): ')
@@ -208,7 +209,7 @@ class OOP(object):
         # Add an Entry_摆杆长度
         self.swingleng = tk.DoubleVar()
         ttk.Entry(pendulum_frame2, width=12, textvariable=self.swingleng).grid(column=1, row=2)
-        self.swingleng.set(2950)
+        self.swingleng.set(3000)
 
         # Add a Label_轨迹步长
         ttk.Label(pendulum_frame2, text='轨迹步长(mm): ').grid(column=0, row=4)
@@ -233,14 +234,13 @@ class OOP(object):
         self.pitch = tk.DoubleVar()
         e_pitch = ttk.Entry(pendulum_frame2, width=12, textvariable=self.pitch)
         e_pitch.grid(column=1, row=6)
-        self.pitch.set(6750)
+        self.pitch.set(7000)
 
-        # 若为浸入即出槽分析，禁用工件数量、步长选项
-        if self.pathtype_value.get() == 5:
+        # 若为浸入即出槽和工艺时间分析，禁用步长选项
+        if self.pathtype_value.get() in [5, 6]:
             e_step.configure(state='disabled')
-            e_num.configure(state='disabled')
-        # 若为绘制轨迹，禁用工件数量、节距选项
-        elif self.pathtype_value.get() != 2 and self.pathtype_value.get() != 4:
+        # 若不为做动画，禁用工件数量、节距选项
+        if self.pathtype_value.get() not in [2, 4]:
             e_num.configure(state='disabled')
             self.carnum.set(1)
             e_pitch.configure(state='disabled')
@@ -267,34 +267,47 @@ class OOP(object):
             for child in pendulum_frame3.winfo_children():
                 child.grid_configure(sticky=tk.W, padx=8, pady=4)
         elif self.pathtype_value.get() == 6:
+            self.swingmode_value = 1
             # Add Frame4_工艺时间==============================
             pendulum_frame4 = ttk.LabelFrame(self.main_frame, text='工艺时间计算')
             pendulum_frame4.grid(column=0, row=4, sticky='WE', columnspan=2, padx=8, pady=4)
 
-            # Add a Label_工件高度
-            ttk.Label(pendulum_frame4, text='工件高度(mm): ').grid(column=0, row=0)
-            # Add an Entry_工件高度
-            self.carheight = tk.StringVar()
-            ttk.Entry(pendulum_frame4, width=12, textvariable=self.carheight).grid(column=1, row=0)
-
+            # # Add a Label_工件高度
+            # ttk.Label(pendulum_frame4, text='工件高度(mm): ').grid(column=0, row=0)
+            # # Add an Entry_工件高度
+            # self.carheight = tk.DoubleVar()
+            # ttk.Entry(pendulum_frame4, width=12, textvariable=self.carheight).grid(column=1, row=0)
+            # self.carheight.set(1700)
+            #
             # Add a Label_液面高度
-            ttk.Label(pendulum_frame4, text='液面距轨道中心(mm): ').grid(column=2, row=0)
+            ttk.Label(pendulum_frame4, text='液面距轨道中心(mm): ').grid(column=0, row=0)
             # Add an Entry_液面高度
-            self.liquidheight = tk.StringVar()
-            ttk.Entry(pendulum_frame4, width=12, textvariable=self.liquidheight).grid(column=3, row=0)
+            self.liquidheight = tk.DoubleVar()
+            ttk.Entry(pendulum_frame4, width=12, textvariable=self.liquidheight).grid(column=1, row=0)
+            self.liquidheight.set(550)
 
             # Add a Label_链速
-            ttk.Label(pendulum_frame4, text='链速(m/min): ').grid(column=0, row=1)
+            ttk.Label(pendulum_frame4, text='链速(m/min): ').grid(column=2, row=0)
             # Add an Entry_链速
-            self.chainspeed = tk.StringVar()
-            ttk.Entry(pendulum_frame4, width=12, textvariable=self.chainspeed).grid(column=1, row=1)
+            self.chainspeed = tk.DoubleVar()
+            ttk.Entry(pendulum_frame4, width=12, textvariable=self.chainspeed).grid(column=3, row=0)
+            self.chainspeed.set(8)
 
             # Add a Label_选择全浸点
-            ttk.Label(pendulum_frame4, text='工件全浸点: ').grid(column=2, row=1)
+            ttk.Label(pendulum_frame4, text='工件全浸点: ').grid(column=0, row=1)
             # Add a Button_选择全浸点
             self.b_choose_immersion = ttk.Button(pendulum_frame4, text='单击选择', style='R.TButton',
                                                  command=lambda: self.callbacks.click_point('immersion'))
-            self.b_choose_immersion.grid(column=3, row=1)
+            self.b_choose_immersion.grid(column=1, row=1)
+
+            # Add a Button_删除块属性
+            self.b_del_block_attributes = ttk.Button(pendulum_frame4, text='删除块属性',
+                                                     command=lambda: self.callbacks.delete_block_attributes())
+            self.b_del_block_attributes.grid(column=2, row=1)
+            # Add a Button_删除块参照属性
+            self.b_del_blockreference_attributes = ttk.Button(pendulum_frame4, text='删除块参照属性',
+                                                              command=lambda: self.callbacks.delete_blockreference_attributes())
+            self.b_del_blockreference_attributes.grid(column=3, row=1)
 
             for child in pendulum_frame4.winfo_children():
                 child.grid_configure(sticky=tk.W, padx=8, pady=4)
@@ -305,7 +318,7 @@ class OOP(object):
         self._progressbar(pendulum_frame5)
         self.b_previous = ttk.Button(pendulum_frame5, text='上一步', command=self.callbacks.previousbutton)
         self.b_previous.grid(column=0, row=1, padx=20, pady=8)
-        if self.pathtype_value.get() <= 4:
+        if self.pathtype_value.get() in [1, 2, 3, 4]:
             self.b_entry = ttk.Button(pendulum_frame5, text='确定',
                                       command=lambda: self.doPath.do_pendulum(self.pathtype_value.get(),
                                                                               self.dirvalue.get(),
@@ -328,7 +341,15 @@ class OOP(object):
                                                                                       self.pitch.get(),
                                                                                       self.swingleng.get() - 252.75))
         elif self.pathtype_value.get() == 6:
-            self.b_entry = ttk.Button(pendulum_frame5, text='确定')
+            self.b_entry = ttk.Button(pendulum_frame5, text='确定',
+                                      command=lambda: self.doPath.do_pendulum_immersiontime(self.dirvalue.get(),
+                                                                                            self.swingstate_value.get(),
+                                                                                            self.callbacks.chainpath,
+                                                                                            self.chainbracing.get(),
+                                                                                            self.bracing.get(),
+                                                                                            self.swingleng.get() - 252.75,
+                                                                                            self.liquidheight.get(),
+                                                                                            self.chainspeed.get() * 1000 / 60))
         self.b_entry.grid(column=1, row=1, padx=20, pady=8)
         self.b_quit = ttk.Button(pendulum_frame5, text='退出', command=self.callbacks.quit)
         self.b_quit.grid(column=2, row=1, padx=20, pady=8)

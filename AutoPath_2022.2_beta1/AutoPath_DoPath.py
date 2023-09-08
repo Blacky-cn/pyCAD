@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 @author: LZH
@@ -30,35 +30,22 @@ class DOPATH:
             lay.LayerOn = False  # 关闭图层
         self.chainleng = self._pline_length(chainpath)
         self.frtstep = self._frtsteppnt(chainpath, steppnt, step, self.chainleng)
-        if swingstate_value == 1:
-            swingstate_value_text = '模式：前摆杆竖直'
-        else:
-            swingstate_value_text = '模式：后摆杆竖直'
-        if select % 10 == 1:
-            inserttext = swingstate_value_text + '\n轨道长度：' + str(
-                round(self.chainleng[-1], 2)) + 'mm\n' + '轨迹步长：' + str(
-                step) + 'mm\n' + '摆杆间距：' + str(bracing) + 'mm\n' + '摆杆长度：' + str(swingleng + 252.75) + 'mm'
-        else:
-            inserttext = swingstate_value_text + '\n轨道长度：' + str(
-                round(self.chainleng[-1], 2)) + 'mm\n' + '工件节距：' + str(
-                pitch) + 'mm\n' + '摆杆间距：' + str(bracing) + 'mm\n' + '摆杆长度：' + str(swingleng + 252.75) + 'mm'
-        self._insert_mt(chainpath, inserttext)
         self.j = 1
         self.jj = 0  # 判断是否为第一次插入
+        chainplate = []
+        fswing = []
+        bswing = []
+        car = []
         for i in steppnt:
             # 更新进度条==============
-            progress_value = round(self.j / len(steppnt) * 100, 0)
+            progress_value = round(self.j / len(steppnt) * 100, 1)
             self.oop.update_progressbar(progress_value)
 
-            chainplate = []
-            fswing = []
-            bswing = []
-            car = []
-            if ((self.j - 1) * float(step) + self.frtstep) > ((carnum - 1) * pitch + bracing + 2 * chainbracing):
-                layernum = self.j % len(self.layerobjs)
+            nowdist = (self.j - 1) * float(step) + self.frtstep
+            if nowdist > ((carnum - 1) * pitch + bracing + 2 * chainbracing):
+                layernum = (self.j - 1) % len(self.layerobjs)
                 self.doc.ActiveLayer = self.doc.Layers(self.layerobjs[layernum].Name)
                 for num in range(carnum):
-                    nowdist = (self.j - 1) * float(step) + self.frtstep
                     if num == 0:
                         inspnt0 = i
                     else:
@@ -67,8 +54,9 @@ class DOPATH:
                     for swingnum in range(2):
                         if swingnum == 0:
                             inspnt1 = inspnt0
-                        if swingnum == 1:
-                            inspnt1 = self._find_distpnt(chainpath, self.chainleng, nowdist - num * pitch, inspnt0, bracing)
+                        elif swingnum == 1:
+                            inspnt1 = self._find_distpnt(chainpath, self.chainleng, nowdist - num * pitch, inspnt0,
+                                                         bracing)
                         self._find_insertpnt(chainpath, chainbracing, nowdist - num * pitch - swingnum * bracing,
                                              inspnt1, i)
                         self._insert_block('ChainPlate', chainplate, swingnum)
@@ -88,16 +76,167 @@ class DOPATH:
                     self.circlecar.Delete()
                     self.circleswing.Delete()
                 if select % 10 == 2:
-                    self._animation_next_or_copy(chainplate, fswing, bswing, car)
+                    self._animation_next_or_copy(chainplate[-4:], fswing[-2:], bswing[-2:], car[-2:])
             self.j += 1
         for lay in self.layerobjs:
             lay.LayerOn = True  # 打开图层
         self.doc.ActiveLayer = self.doc.Layers("0")
 
+        if swingstate_value == 1:
+            swingstate_value_text = '模式：前摆杆竖直'
+        else:
+            swingstate_value_text = '模式：后摆杆竖直'
+        if select % 10 in [1, 3]:
+            inserttext = swingstate_value_text + '\n轨道长度：' + str(
+                round(self.chainleng[-1], 2)) + 'mm\n' + '轨迹步长：' + str(
+                step) + 'mm\n' + '摆杆间距：' + str(bracing) + 'mm\n' + '摆杆长度：' + str(swingleng + 252.75) + 'mm'
+            self._insert_mt(chainpath, inserttext)
+        elif select % 10 in [2, 4]:
+            inserttext = swingstate_value_text + '\n轨道长度：' + str(
+                round(self.chainleng[-1], 2)) + 'mm\n' + '工件节距：' + str(
+                pitch) + 'mm\n' + '摆杆间距：' + str(bracing) + 'mm\n' + '摆杆长度：' + str(swingleng + 252.75) + 'mm'
+            self._insert_mt(chainpath, inserttext)
+
         # 更新进度条==============
         self.oop.update_progressbar(progress_value, finish=1)
 
-    def do_pendulum_diptank(self, dirvalue, swingmode_value, chainpath, diptank_midpnt, chainbracing, bracing, pitch,
+    def do_pendulum_immersiontime(self, dirvalue, swingstate_value, chainpath, chainbracing, bracing, swingleng,
+                                  liquidheight, chainspeed):
+        """摆杆 - 轨迹/动画"""
+        self.dirvalue = dirvalue
+        # for lay in self.layerobjs:
+        #     lay.LayerOn = False  # 关闭图层
+        self.chainleng = self._pline_length(chainpath)
+
+        # 插入液面线==============
+        chaincoordinate_y = chainpath.Coordinates[1::2]
+        liquidline_y = min(chaincoordinate_y) - liquidheight
+        liquidlinepnt1 = Tc.vtpnt(min(chainpath.Coordinates[::2]), liquidline_y)
+        liquidlinepnt2 = Tc.vtpnt(max(chainpath.Coordinates[::2]), liquidline_y)
+        self.doc.ActiveLayer = self.doc.Layers("0")
+        self.msp.AddLine(liquidlinepnt1, liquidlinepnt2)
+        self.msp.AddText('液面线', liquidlinepnt1, 200)
+
+        self.j = 1
+        self.jj = 0  # 判断是否为第一次插入
+        chainplate = []
+        fswing = []
+        bswing = []
+        car = []
+        immersionpnt = []
+        leachingpnt = []
+        for i in self.chainleng:
+            if i > chainbracing * 2 + bracing:
+                index = self.chainleng.index(i)
+                break
+        nowdist = [i - 0.1]
+        inspnt0 = [chainpath.Coordinates[(index + 1) * 2], chainpath.Coordinates[(index + 1) * 2 + 1]]
+        stepadd = 0
+        while (nowdist[-1] + chainbracing * 2 + stepadd) < self.chainleng[-1]:
+            # 更新进度条==============
+            progress_value = round(nowdist[-1] / self.chainleng[-1] * 100, 1)
+            self.oop.update_progressbar(progress_value)
+
+            layernum = (self.j - 1) % len(self.layerobjs)
+            self.doc.ActiveLayer = self.doc.Layers(self.layerobjs[layernum].Name)
+            if self.jj != 0:  # 不是第一台工件，保证步长增量有值
+                inspnt0 = self._find_distpnt(chainpath, self.chainleng, nowdist[-1], inspnt0, -stepadd)
+                nowdist.append(nowdist[-1] + stepadd)
+            self.swingpnt = []
+            for swingnum in range(2):
+                if swingnum == 0:
+                    inspnt1 = inspnt0
+                elif swingnum == 1:
+                    inspnt1 = self._find_distpnt(chainpath, self.chainleng, nowdist[-1], inspnt0, bracing)
+                self._find_insertpnt(chainpath, chainbracing, nowdist[-1] - swingnum * bracing, inspnt1, inspnt0)
+                self._insert_block('ChainPlate', chainplate, swingnum)
+                self.circlebr.Delete()
+                self.swingpnt.append(self._find_isotrianglepnt(inspnt1))
+                if swingnum == 0 and swingstate_value == 1:  # 前摆杆竖直
+                    self._insert_swing(fswing, self.swingpnt[0], swingleng, bracing, 'FSwing')
+                elif swingnum == 1 and swingstate_value == 2:  # 后摆杆竖直
+                    self._insert_swing(bswing, self.swingpnt[1], swingleng, bracing, 'BSwing')
+                else:
+                    swingpnt0 = Tc.vtpnt(self.swingpnt[-1][0], self.swingpnt[-1][1])
+                    self.circleswing = self.msp.AddCircle(swingpnt0, swingleng)
+            if swingstate_value == 1:  # 前摆杆竖直，插入后摆杆和工件
+                self._insert_car(swingstate_value, car, bswing)
+            else:  # 后摆杆竖直，插入前摆杆和工件
+                self._insert_car(swingstate_value, car, fswing)
+            self.circlecar.Delete()
+            self.circleswing.Delete()
+
+            # 获取全浸点坐标，计算步长==============
+            carattribute = car[-1].GetAttributes()
+            immersionpnt.append(carattribute[-2].InsertionPoint[1])
+            leachingpnt.append(carattribute[-1].InsertionPoint[1])
+            immersionpnt[-1] -= liquidline_y
+            leachingpnt[-1] -= liquidline_y
+            if car[-1].Rotation == 0:
+                stepadd = abs(immersionpnt[-1]) * 2
+            elif self.mirmark == 0:  # 起始向右
+                if car[-1].Rotation >= math.pi:  # 车头向下，以浸入点为准，将浸出点赋大值、排除干扰
+                    stepadd = max(abs(immersionpnt[-1]), 50)
+                    leachingpnt[-1] = 10000
+                else:  # 车头向上，以浸出点为准，将浸入点赋大值、排除干扰
+                    stepadd = max(abs(leachingpnt[-1]), 50)
+                    immersionpnt[-1] = 10000
+            elif self.mirmark == 1:  # 起始向左
+                if car[-1].Rotation <= math.pi:  # 车头向下，以浸入点为准，将浸出点赋大值、排除干扰
+                    stepadd = max(abs(immersionpnt[-1]), 50)
+                    leachingpnt[-1] = 10000
+                else:  # 车头向上，以浸出点为准，将浸入点赋大值、排除干扰
+                    stepadd = max(abs(leachingpnt[-1]), 50)
+                    immersionpnt[-1] = 10000
+            self.j += 1
+
+        # 保留全浸点工件位置==============
+        immersionpnt_abs = list(map(abs, immersionpnt))
+        immersionpnt_index = immersionpnt_abs.index(min(immersionpnt_abs))
+        leachingpnt_abs = list(map(abs, leachingpnt))
+        leachingpnt_index = leachingpnt_abs.index(min(leachingpnt_abs))
+        for i in range(len(car)):
+            if i not in [immersionpnt_index, leachingpnt_index]:
+                chainplate[i * 2].delete()  # 删除前链板
+                chainplate[i * 2 + 1].delete()  # 删除后链板
+                fswing[i].delete()  # 删除前摆杆
+                bswing[i].delete()  # 删除后摆杆
+                car[i].delete()  # 删除工件
+
+        # 删除快属性==============
+        carblock = self.doc.Blocks('Skid&Body')
+        for entity in carblock:
+            if entity.EntityName == 'AcDbAttributeDefinition':
+                entity.Delete()
+        # 删除快参照属性==============
+        for entity in self.msp:
+            if entity.EntityName == 'AcDbBlockReference':
+                if entity.HasAttributes:
+                    for attribute in entity.GetAttributes():
+                        attribute.Erase()
+                    entity.Update()
+
+        for lay in self.layerobjs:
+            lay.LayerOn = True  # 打开图层
+        self.doc.ActiveLayer = self.doc.Layers("0")
+
+        # 计算全浸时间，输出说明==============
+        immersion_length = nowdist[leachingpnt_index] - nowdist[immersionpnt_index]
+        immersion_time = round(immersion_length / chainspeed, 2)
+        if swingstate_value == 1:
+            swingstate_value_text = '模式：前摆杆竖直'
+        else:
+            swingstate_value_text = '模式：后摆杆竖直'
+        inserttext = swingstate_value_text + '\n液面距离轨道中心线：' + str(
+            liquidheight) + 'mm\n' + '全浸时运行长度：' + str(round(immersion_length, 2)) + 'mm\n' + '链速：' + str(
+            round(chainspeed, 2)) + 'mm/s\n' + '全浸时间：' + str(immersion_time) + 's'
+        self._insert_mt(chainpath, inserttext)
+
+        # 更新进度条==============
+        self.oop.update_progressbar(100, finish=1)
+
+    def do_pendulum_diptank(self, dirvalue, swingmode_value, chainpath, diptank_midpnt, chainbracing, bracing,
+                            pitch,
                             swingleng):
         """摆杆 - 浸入即出槽分析"""
         for lay in self.layerobjs:
@@ -115,8 +254,7 @@ class DOPATH:
         else:
             swingmode_value_text = '模式：外侧摆杆竖直'
         inserttext = '浸入即出槽分析\n' + swingmode_value_text + '\n摆杆间距：' + str(
-            bracing) + 'mm\n' + '摆杆长度：' + str(
-            swingleng) + 'mm\n' + '工件节距：' + str(pitch) + 'mm'
+            bracing) + 'mm\n' + '摆杆长度：' + str(swingleng + 252.75) + 'mm\n' + '工件节距：' + str(pitch) + 'mm'
         self._insert_mt(chainpath, inserttext)
         self.jj = 0  # 判断是否为第一次插入
         for num in range(2):
@@ -128,13 +266,13 @@ class DOPATH:
                 nowdist = (pitch - bracing) / 2
             else:  # 前车
                 nowdist = -(pitch + bracing) / 2
-            layernum = (num + 1) % len(self.layerobjs)
+            layernum = num % len(self.layerobjs)
             self.doc.ActiveLayer = self.doc.Layers(self.layerobjs[layernum].Name)
             inspnt0 = self._find_distpnt(chainpath, self.chainleng, dist_of_plinestart, diptank_midpnt[:2], nowdist)
             self.swingpnt = []
             for swingnum in range(2):
                 # 更新进度条==============
-                progress_value = round((num * 2 + swingnum + 1) / 4 * 100, 0)
+                progress_value = round((num * 2 + swingnum + 1) / 4 * 100, 1)
                 self.oop.update_progressbar(progress_value)
 
                 if swingnum == 0:
@@ -149,17 +287,17 @@ class DOPATH:
                 self.swingpnt.append(self._find_isotrianglepnt(inspnt1))
                 if swingmode_value == 1:  # 内侧摆杆竖直，即前车后摆杆、后车前摆杆竖直
                     if num == 1 and swingnum == 1:  # 插入前车后摆杆
-                        self._insert_swing(fswing, self.swingpnt[1], swingleng, bracing, 'FSwing')
+                        self._insert_swing(bswing, self.swingpnt[1], swingleng, bracing, 'BSwing')
                     elif num == 0 and swingnum == 0:  # 插入后车前摆杆
-                        self._insert_swing(bswing, self.swingpnt[0], swingleng, bracing, 'BSwing')
+                        self._insert_swing(fswing, self.swingpnt[0], swingleng, bracing, 'FSwing')
                     else:
                         swingpnt0 = Tc.vtpnt(self.swingpnt[-1][0], self.swingpnt[-1][1])
                         self.circleswing = self.msp.AddCircle(swingpnt0, swingleng)
                 else:  # 外侧摆杆竖直，即前车前摆杆、后车后摆杆竖直
                     if num == 1 and swingnum == 0:  # 插入前车前摆杆
-                        self._insert_swing(fswing, self.swingpnt[1], swingleng, bracing, 'FSwing')
-                    elif num == 0 and swingnum == 1:  # 插入后摆杆竖直
-                        self._insert_swing(bswing, self.swingpnt[0], swingleng, bracing, 'BSwing')
+                        self._insert_swing(fswing, self.swingpnt[0], swingleng, bracing, 'FSwing')
+                    elif num == 0 and swingnum == 1:  # 插入后车后摆杆
+                        self._insert_swing(bswing, self.swingpnt[1], swingleng, bracing, 'BSwing')
                     else:
                         swingpnt0 = Tc.vtpnt(self.swingpnt[-1][0], self.swingpnt[-1][1])
                         self.circleswing = self.msp.AddCircle(swingpnt0, swingleng)
@@ -247,7 +385,6 @@ class DOPATH:
         for k in range(len(self.chainleng)):
             if nowdist < self.chainleng[k]:
                 self.jj += 1
-                # print(chainleng[k])
                 plpnt = chainpath.Coordinates[(k * 2):(k * 2 + 2)]
                 plpnt = Tc.vtpnt(plpnt[0], plpnt[1])
                 angpl = self.doc.Utility.AngleFromXAxis(plpnt, self.inspnt)
@@ -272,9 +409,9 @@ class DOPATH:
             blocklist.append(self.msp.InsertBlock(self.inspnt, block_name, 1, 1, 1, a))
             if self.mirmark == 1:  # 起始向左
                 fstpnt = Tc.vtpnt(self.intpnts[self.index * 3], self.intpnts[self.index * 3 + 1])
-                car1 = blocklist[num].Mirror(fstpnt, self.inspnt)
-                blocklist[num].Delete()
-                blocklist[num] = car1
+                blockmirror = blocklist[-1].Mirror(fstpnt, self.inspnt)
+                blocklist[-1].Delete()
+                blocklist.append(blockmirror)
         else:  # 工件向左
             if self.angbr[self.index] < math.pi:
                 a = self.angbr[self.index] + math.pi
@@ -283,9 +420,9 @@ class DOPATH:
             blocklist.append(self.msp.InsertBlock(self.inspnt, block_name, 1, 1, 1, a))
             if self.mirmark == 0:  # 起始向右
                 fstpnt = Tc.vtpnt(self.intpnts[self.index * 3], self.intpnts[self.index * 3 + 1])
-                car1 = blocklist[num].Mirror(fstpnt, self.inspnt)
-                blocklist[num].Delete()
-                blocklist[num] = car1
+                blockmirror = blocklist[-1].Mirror(fstpnt, self.inspnt)
+                blocklist[-1].Delete()
+                blocklist.append(blockmirror)
 
     def _insert_swing(self, swinglist, swingpnt, swingleng, bracing, swing_name):
         """插入摆杆"""
@@ -297,7 +434,7 @@ class DOPATH:
         car_fpnt = Tc.vtpnt(car_fpnt0[0], car_fpnt0[1])
         self.circlecar = self.msp.AddCircle(car_fpnt, bracing)
 
-    def _insert_car(self, state_value, blocklist0, blocklist1, block_name='Skid&Body'):
+    def _insert_car(self, state_value, carlist, swinglist, car_name='Skid&Body'):
         """插入工件及另一根摆杆"""
         car_pnt = self.circlecar.IntersectWith(self.circleswing, 0)
         car_pntdif = []
@@ -313,25 +450,25 @@ class DOPATH:
             bswing_pnt = Tc.vtpnt(self.swingpnt[1][0], self.swingpnt[1][1])
             car_angle = self.doc.Utility.AngleFromXAxis(car_inspnt0, car_inspnt1)
             swing_angel = self.doc.Utility.AngleFromXAxis(bswing_pnt, car_inspnt1)
-            blocklist0.append(self.msp.InsertBlock(car_inspnt0, block_name, 1, 1, 1, car_angle))
-            self._mirror_block(car_inspnt0, car_inspnt1, blocklist0)
-            blocklist1.append(self.msp.InsertBlock(bswing_pnt, 'BSwing', 1, 1, 1, swing_angel - math.pi * 3 / 2))
-            self._mirror_block(bswing_pnt, car_inspnt1, blocklist1)
+            carlist.append(self.msp.InsertBlock(car_inspnt0, car_name, 1, 1, 1, car_angle))
+            self._mirror_block(car_inspnt0, car_inspnt1, carlist)
+            swinglist.append(self.msp.InsertBlock(bswing_pnt, 'BSwing', 1, 1, 1, swing_angel - math.pi * 3 / 2))
+            self._mirror_block(bswing_pnt, car_inspnt1, swinglist)
         else:  # 后摆杆竖直，以circlecar与circleswing交点为插入点，第二点为circlecar圆心
             fswing_pnt = Tc.vtpnt(self.swingpnt[0][0], self.swingpnt[0][1])
             car_angle = self.doc.Utility.AngleFromXAxis(car_inspnt1, car_inspnt0)
             swing_angel = self.doc.Utility.AngleFromXAxis(fswing_pnt, car_inspnt1)
-            blocklist0.append(self.msp.InsertBlock(car_inspnt1, block_name, 1, 1, 1, car_angle))
-            self._mirror_block(car_inspnt1, car_inspnt0, blocklist0)
-            blocklist1.append(self.msp.InsertBlock(fswing_pnt, 'FSwing', 1, 1, 1, swing_angel - math.pi * 3 / 2))
-            self._mirror_block(fswing_pnt, car_inspnt1, blocklist1)
+            carlist.append(self.msp.InsertBlock(car_inspnt1, car_name, 1, 1, 1, car_angle))
+            self._mirror_block(car_inspnt1, car_inspnt0, carlist)
+            swinglist.append(self.msp.InsertBlock(fswing_pnt, 'FSwing', 1, 1, 1, swing_angel - math.pi * 3 / 2))
+            self._mirror_block(fswing_pnt, car_inspnt1, swinglist)
 
     def _mirror_block(self, blockpnt0, blockpnt1, blocklist):
         """若工件方向与轨迹起始方向相反，则镜像摆杆、工件"""
         if (self.dirvalue == 1 and self.mirmark == 1) or (self.dirvalue == 2 and self.mirmark == 0):
             block_mirror = blocklist[-1].Mirror(blockpnt0, blockpnt1)
             blocklist[-1].Delete()
-            blocklist[-1] = block_mirror
+            blocklist.append(block_mirror)
 
     def _pathpnt(self, pline, step):
         """沿轨道线按步长求插入点"""
@@ -379,7 +516,8 @@ class DOPATH:
                     preleng = leng[vertex - 1]
                 if bulge == 0:
                     if (i >= nowdist and dist >= 0) or (preleng <= nowdist and dist < 0):
-                        sndpnt[0] = frtpnt[0] - dist * (frtpnt[0] - pline.Coordinates[vertex * 2]) / (nowdist - preleng)
+                        sndpnt[0] = frtpnt[0] - dist * (frtpnt[0] - pline.Coordinates[vertex * 2]) / (
+                                nowdist - preleng)
                         sndpnt[1] = frtpnt[1] - dist * (frtpnt[1] - pline.Coordinates[vertex * 2 + 1]) / (
                                 nowdist - preleng)
                     elif (i < nowdist and dist >= 0) or (preleng > nowdist and dist < 0):
@@ -420,7 +558,8 @@ class DOPATH:
             elif frtpnt[1] == sndpnt[1]:
                 trdpnt_x = (frtpnt[0] + sndpnt[0]) / 2
                 trdpnt_y = frtpnt[1] - height
-            elif (frtpnt[0] < sndpnt[0] and frtpnt[1] < sndpnt[1]) or (frtpnt[0] > sndpnt[0] and frtpnt[1] > sndpnt[1]):
+            elif (frtpnt[0] < sndpnt[0] and frtpnt[1] < sndpnt[1]) or (
+                    frtpnt[0] > sndpnt[0] and frtpnt[1] > sndpnt[1]):
                 trdpnt_x = (frtpnt[0] + sndpnt[0]) / 2 + height / (
                         ((sndpnt[0] - frtpnt[0]) / (sndpnt[1] - frtpnt[1])) ** 2 + 1) ** 0.5
                 trdpnt_y = (frtpnt[1] + sndpnt[1]) / 2 - height / (
@@ -517,9 +656,9 @@ class DOPATH:
 
     def _insert_mt(self, chainpath, inserttext):
         """绘制轨迹/仿真时，在轨道线上方插入文字说明"""
-        textpnt = Tc.vtpnt((min(chainpath.Coordinates[0:-2:2]) + max(chainpath.Coordinates[0:-2:2])) / 2 - 1500,
+        textpnt = Tc.vtpnt((min(chainpath.Coordinates[0:-2:2]) + max(chainpath.Coordinates[0:-2:2])) / 2 - 3500,
                            max(chainpath.Coordinates[1:-1:2]) + 3000)
-        mt = self.msp.AddMText(textpnt, 3000, inserttext)
+        mt = self.msp.AddMText(textpnt, 5000, inserttext)
         mt.Height = 200
         mt.styleName = 'STANDARD'
 
@@ -546,7 +685,7 @@ class DOPATH:
         leng = []
         pline1 = pline.Explode()
         for i in pline1:
-            if 'Arc' in i.ObjectName:
+            if 'arc' in i.ObjectName.lower():
                 leng.append(i.ArcLength)
             else:
                 leng.append(i.Length)

@@ -47,7 +47,7 @@ class DOPATH:
                 pitch) + 'mm\n' + '摆杆间距：' + str(bracing) + 'mm\n' + '摆杆长度：' + str(swingleng + 252.75) + 'mm'
             self._insert_mt(chainpath, inserttext)
 
-        self._find_direction(steppnt[0], chainpath)  # 确定轨道方向
+        self._find_direction(chainpath)  # 确定轨道方向
         self.j = 1
         self.jj = 0  # 判断是否为第一次插入
         chainplate = []
@@ -116,14 +116,14 @@ class DOPATH:
         # 说明文字==============
         if select == 3:
             inserttext = '轨道长度：' + str(round(self.chainleng[-1], 2)) + 'mm\n' + '轨迹步长：' + str(
-                step) + 'mm\n' + '摆杆长度：' + str(swingleng + 252.75) + 'mm'
+                step) + 'mm\n' + '摆杆长度：' + str(swingleng) + 'mm'
             self._insert_mt(chainpath, inserttext)
         else:
-            inserttext = '\n轨道长度：' + str(round(self.chainleng[-1], 2)) + 'mm\n' + '工件节距：' + str(
-                pitch) + 'mm\n' + '摆杆间距：' + str(bracing) + 'mm\n' + '摆杆长度：' + str(swingleng + 252.75) + 'mm'
+            inserttext = '轨道长度：' + str(round(self.chainleng[-1], 2)) + 'mm\n' + '工件节距：' + str(
+                pitch) + 'mm\n' + '摆杆间距：' + str(bracing) + 'mm\n' + '摆杆长度：' + str(swingleng) + 'mm'
             self._insert_mt(chainpath, inserttext)
 
-        self._find_direction(steppnt[0], chainpath)  # 确定轨道方向
+        self._find_direction(chainpath)  # 确定轨道方向
         if towervalue == 1:
             distcompare = chainbracing + swingleng + bracing + (carnum - 1) * pitch
         else:
@@ -184,7 +184,6 @@ class DOPATH:
             lay.LayerOn = False  # 关闭图层
         self.dirvalue = dirvalue
         self.chainleng = self._pline_length(chainpath)
-        steppnt = self._pathpnt(chainpath, 500)
         pline_segment = self._point_on_pline(chainpath, diptank_midpnt)
         dist_of_plinestart = self._find_dist(chainpath, diptank_midpnt[:2], pline_segment)
         if (dist_of_plinestart <= (bracing + (pitch - bracing) / 2 + chainbracing)) or (
@@ -201,7 +200,7 @@ class DOPATH:
             bracing) + 'mm\n' + '摆杆长度：' + str(swingleng + 252.75) + 'mm\n' + '工件节距：' + str(pitch) + 'mm'
         self._insert_mt(chainpath, inserttext)
 
-        self._find_direction(steppnt[0], chainpath)  # 确定轨道方向
+        self._find_direction(chainpath)  # 确定轨道方向
         self.jj = 0  # 判断是否为第一次插入
         for num in range(2):
             chainplate = []
@@ -277,7 +276,6 @@ class DOPATH:
         for lay in self.layerobjs:
             lay.LayerOn = False  # 关闭图层
         self.chainleng = self._pline_length(chainpath)
-        steppnt = self._pathpnt(chainpath, 500)
 
         # 插入液面线==============
         chaincoordinate_y = chainpath.Coordinates[1::2]
@@ -288,7 +286,7 @@ class DOPATH:
         self.msp.AddLine(liquidlinepnt1, liquidlinepnt2)
         self.msp.AddText('液面线', liquidlinepnt1, 200)
 
-        self._find_direction(steppnt[0], chainpath)  # 确定轨道方向
+        self._find_direction(chainpath)  # 确定轨道方向
         self.j = 1
         self.jj = 0  # 判断是否为第一次插入
         chainplate = []
@@ -412,7 +410,7 @@ class DOPATH:
                 bracing) + '工件节距：' + str(pitch) + 'mm'
         self._insert_mt(chainpath, inserttext)
 
-        self._find_direction(steppnt[0], chainpath)  # 确定轨道方向
+        self._find_direction(chainpath)  # 确定轨道方向
         self.j = 1
         self.jj = 0  # 判断是否为第一次插入
         for i in steppnt:
@@ -448,8 +446,11 @@ class DOPATH:
         # 更新进度条==============
         self.oop.update_progressbar(100, finish=1)
 
-    def _find_direction(self, steppnt, chainpath):
-        if steppnt[0] > chainpath.Coordinates[0]:  # 起始向右
+    def _find_direction(self, chainpath):
+        circlepnt = Tc.vtpnt(chainpath.Coordinates[0], chainpath.Coordinates[1])
+        direction_circle = self.msp.AddCircle(circlepnt, 0.1)
+        intpnt = direction_circle.IntersectWith(chainpath, 0)
+        if intpnt[0] > chainpath.Coordinates[0]:  # 起始向右
             self.mirmark = 0
         else:
             self.mirmark = 1  # 起始向左

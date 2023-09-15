@@ -560,6 +560,7 @@ class OOP(object):
         help_menu = Menu(menu_bar, tearoff=0)
         menu_bar.add_cascade(label='帮助', menu=help_menu)
         help_menu.add_command(label='入门指南')
+        help_menu.add_command(label='更新日志', command=self.callbacks.changelog)
         help_menu.add_separator()
         help_menu.add_command(label='关于', command=self.callbacks.aboutmsg)
 

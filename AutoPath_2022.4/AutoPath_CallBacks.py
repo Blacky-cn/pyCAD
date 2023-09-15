@@ -6,6 +6,8 @@ GUI Button调用函数
 """
 
 # imports==========
+import os
+import sys
 import time
 from tkinter import ttk, messagebox as msg
 
@@ -65,6 +67,16 @@ class CALLBACKS:
                      'AutoPath 2022.2 Beta\n\n'
                      'Copyright \u00a9 2022 LZH. All Rights Reserved.\n\n'
                      'Supporting Autodesk CAD: v2010-v2022. Other versions are not tested.')
+
+    @staticmethod
+    def changelog():
+        """changlog Menu"""
+        # os.startfile(r'docs\\CHANGELOG.pdf')
+        if hasattr(sys, '_MEIPASS'):
+            path = os.path.join(sys._MEIPASS, 'docs/CHANGELOG.pdf')
+        else:
+            path = os.path.join(os.path.abspath('.'), 'docs/CHANGELOG.pdf')
+        os.startfile(path)
 
     def click_block(self, block_name):
         """选择图块"""

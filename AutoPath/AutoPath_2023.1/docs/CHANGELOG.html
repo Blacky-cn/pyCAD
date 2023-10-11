@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta content="LZH" name="author">
+  <meta content="width=device-width" name="viewport">
+  <meta
+    content="The changelog records significant changes in each version of AutoPath. It contents added, fixed, changed, removed, etc."
+    name="description">
+  <title>AutoPath 更新日志</title>
+  <link href="images/car.ico" rel="icon">
+  <link href="styles/README.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+<div id="root">
+  <div class="page-wrapper">
+    <div class="header-container">
+      <header class="top-navigation">
+        <div class="container">
+          <div class="top-navigation-wrapper">
+            <h1 class="logo">更新日志</h1>
+          </div>
+        </div>
+      </header>
+    </div>
+    <div class="main-wrapper">
+      <div class="sidebar-container">
+        <div class="toc-container">
+          <aside class="toc">
+            <nav>
+              <div class="document-toc-container">
+                <section class="document-toc">
+                  <header>
+                    <h2 class="document-toc-heading">本文内容</h2>
+                  </header>
+                  <ul class="document-toc-list">
+                    <li class="document-toc-item">
+                      <a class="document-toc-link" href="#roadmap" aria-current="true">Roadmap</a>
+                    </li>
+                    <li class="document-toc-item">
+                      <a class="document-toc-link" href="#2023.1" aria-current="true">2023.1</a>
+                    </li>
+                    <li class="document-toc-item">
+                      <a class="document-toc-link" href="#2022.4" aria-current="true">2022.4</a>
+                    </li>
+                    <li class="document-toc-item">
+                      <a class="document-toc-link" href="#2022.3" aria-current="true">2022.3</a>
+                    </li>
+                    <li class="document-toc-item">
+                      <a class="document-toc-link" href="#2022.2" aria-current="true">2022.2</a>
+                    </li>
+                    <li class="document-toc-item">
+                      <a class="document-toc-link" href="#2022.1" aria-current="true">2022.1</a>
+                    </li>
+                  </ul>
+                </section>
+              </div>
+            </nav>
+          </aside>
+        </div>
+      </div>
+      <main class="main-content" id="content">
+        <article class="main-page-content" lang="zh-CN">
+          <section aria-labelledby="header">
+            <p class="section-content">本文档记录了所有显著的功能更改。</p>
+          </section>
+
+          <section aria-labelledby="roadmap">
+            <h2 id="roadmap">
+              <a href="#roadmap">Roadmap</a>
+            </h2>
+            <div class="section-content">
+              <ul>
+                <li>2022-10-25：<a href="#2022.1">2022.1</a></li>
+                <li>2023-07-20：<a href="#2022.2">2022.2</a></li>
+                <li>2023-09-11：<a href="#2022.3">2022.3</a></li>
+                <li>2023-09-15：<a href="#2022.4">2022.4</a></li>
+                <li>2023-09-19：<a href="#2023.1">2023.1</a></li>
+              </ul>
+            </div>
+          </section>
+
+          <section aria-labelledby="unreleased">
+            <h2 id="unreleased">
+              <a href="#unreleased">Unreleased</a>
+            </h2>
+            <div class="section-content">
+              <p>计划加入或修改的功能。</p>
+
+              <h3>Added</h3>
+              <ul>
+                <li>根据轨迹生成包络线。</li>
+                <li>增加绘制四车组台车轨迹和动画的功能。</li>
+                <li>增加绘制 C 型吊具轨迹和动画的功能。</li>
+                <li>在「菜单」-「文件」中增加配置文件的功能，可导入或导出输入参数。</li>
+              </ul>
+            </div>
+          </section>
+
+          <section aria-labelledby="2023.1">
+            <h2 id="2023.1">
+              <a href="#2023.1">2023.1</a>
+            </h2>
+            <div class="section-content">
+              <p>第一版发布版，提供给部门使用，收集问题。</p>
+              <h3>Added</h3>
+              <ul>
+                <li>经验证，本项目可适用于 AutoCAD Mechanical 版本。</li>
+                <li>在「菜单」-「帮助」中增加入门指南。</li>
+                <li>入门指南及更新日志改用 HTML 编写。</li>
+              </ul>
+            </div>
+          </section>
+
+          <section aria-labelledby="2022.4">
+            <h2 id="2022.4">
+              <a href="#2022.4">2022.4</a>
+            </h2>
+            <div class="section-content">
+              <h3>Added</h3>
+              <ul>
+                <li>将两车组台车的输入参数设置默认值。</li>
+                <li>增加绘制摆杆入口塔、出口塔轨迹和动画的功能。</li>
+                <li>启用 UPX 压缩，减小软件大小。</li>
+                <li>在「菜单」-「帮助」中增加 PDF 格式的更新日志。</li>
+              </ul>
+
+              <h3>Fixed</h3>
+              <ul>
+                <li>修改判断轨迹线方向的方法，修复了在步长较大或绘制多车动画时可能错误判断轨迹线方向。</li>
+              </ul>
+
+              <h3>Changed</h3>
+              <ul>
+                <li>根据轨迹类型不同，区分由链板位置计算摆杆插入点的方法。</li>
+                <li>修改摆杆输入参数的默认值。</li>
+                <li>修改生成说明文字的顺序。</li>
+              </ul>
+            </div>
+          </section>
+
+          <section aria-labelledby="2022.3">
+            <h2 id="2022.3">
+              <a href="#2022.3">2022.3</a>
+            </h2>
+            <div class="section-content">
+              <h3>Added</h3>
+              <ul>
+                <li>增加摆杆浸没时间计算的功能。</li>
+                <li>增加删除块属性的功能。</li>
+              </ul>
+
+              <h3>Fixed</h3>
+              <ul>
+                <li>修改判断是否需要镜像块的条件，修复了错误镜像块的情况。</li>
+              </ul>
+            </div>
+          </section>
+
+          <section aria-labelledby="2022.2">
+            <h2 id="2022.2">
+              <a href="#2022.2">2022.2</a>
+            </h2>
+            <div class="section-content">
+              <h3>Added</h3>
+              <ul>
+                <li>增加绘制摆杆工艺段轨迹和动画的功能。</li>
+                <li>增加进度条功能，帮助确认程序是否处理完毕。</li>
+              </ul>
+
+              <h3>Fixed</h3>
+              <ul>
+                <li>台车程序区分轨道线与链条线，修复了绘制上下坡动画时会错误计算工件节距。</li>
+              </ul>
+            </div>
+          </section>
+
+          <section aria-labelledby="2022.1">
+            <h2 id="2022.1">
+              <a href="#2022.1">2022.1</a>
+            </h2>
+            <div class="section-content">
+              <h3>Added</h3>
+              <ul>
+                <li>增加绘制两车组台车的轨迹和动画的功能。</li>
+              </ul>
+            </div>
+          </section>
+        </article>
+      </main>
+    </div>
+  </div>
+</div>
+
+<footer class="page-footer" id="nav-footer">
+  <p>© Copyright by LZH. All rights reversed.</p>
+</footer>
+</body>
+</html>

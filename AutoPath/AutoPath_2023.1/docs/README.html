@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width" name="viewport">
+  <meta content="LZH" name="author">
+  <meta
+    content="The readme is used to provide users with an introduction and operating instructions for this software to help them use this software."
+    name="description">
+  <title>AutoPath 入门指南</title>
+  <link href="images/car.ico" rel="icon">
+  <link href="styles/README.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+<div id="root">
+  <div class="page-wrapper">
+    <div class="header-container">
+      <header class="top-navigation">
+        <div class="container">
+          <div class="top-navigation-wrapper">
+            <h1 class="logo">入门指南</h1>
+          </div>
+        </div>
+      </header>
+    </div>
+    <div class="main-wrapper">
+      <div class="sidebar-container">
+        <div class="toc-container">
+          <aside class="toc">
+            <nav>
+              <div class="document-toc-container">
+                <section class="document-toc">
+                  <header>
+                    <h2 class="document-toc-heading">本文内容</h2>
+                  </header>
+                  <ul class="document-toc-list">
+                    <li class="document-toc-item">
+                      <a class="document-toc-link" href="#软件说明" aria-current="true">软件说明</a>
+                      <ul>
+                        <li class="document-toc-dropitem">
+                          <a class="document-toc-droplink" href="#开发说明" aria-current="true">开发说明</a>
+                        </li>
+                      </ul>
+                    </li>
+                    <li class="document-toc-item">
+                      <a class="document-toc-link" href="#软件界面" aria-current="true">软件界面</a>
+                    </li>
+                    <li class="document-toc-item">
+                      <a class="document-toc-link" href="#软件使用" aria-current="true">软件使用</a>
+                      <ul>
+                        <li class="document-toc-dropitem">
+                          <a class="document-toc-droplink" href="#通用说明" aria-current="true">通用说明</a>
+                        </li>
+                        <li class="document-toc-dropitem">
+                          <a class="document-toc-droplink" href="#摆杆部分" aria-current="true">摆杆部分</a>
+                        </li>
+                        <li class="document-toc-dropitem">
+                          <a class="document-toc-droplink" href="#翻转机部分" aria-current="true">翻转机部分</a>
+                        </li>
+                        <li class="document-toc-dropitem">
+                          <a class="document-toc-droplink" href="#台车部分" aria-current="true">台车部分</a>
+                        </li>
+                      </ul>
+                    </li>
+                    <li class="document-toc-item">
+                      <a class="document-toc-link" href="#已知问题" aria-current="true">已知问题</a>
+                    </li>
+                    <li class="document-toc-item">
+                      <a class="document-toc-link" href="#联系方式" aria-current="true">联系方式</a>
+                    </li>
+                  </ul>
+                </section>
+              </div>
+            </nav>
+          </aside>
+        </div>
+      </div>
+      <main class="main-content" id="content">
+        <article class="main-page-content" lang="zh-CN">
+          <section aria-labelledby="header">
+            <p class="section-content">
+              你好！如果你是首次使用本项目，请先仔细阅读本文件内容，本文件对各项功能、操作均有详细说明。若在使用过程中有任何疑问，可参照文末方式联系开发者。
+            </p>
+          </section>
+
+          <section aria-labelledby="软件说明">
+            <h2 id="软件说明">
+              <a href="#软件说明">软件说明</a>
+            </h2>
+            <div class="section-content">
+              <p>
+                为了验证台车、摆杆等输送机在水平回转、垂直上下坡等位置的运行状态，机运事业部原先针对 AutoCAD 2012
+                开发了一套轨迹绘制插件。随着 AutoCAD 的版本更新，原程序已无法适配高于 2012 版本的 AutoCAD。因此本项目旨在开发适用于所有版本
+                AutoCAD 的轨迹软件，并可手动指定轨迹方向。
+              </p>
+
+              <h3 id="开发说明">
+                <a href="#开发说明">开发说明</a>
+              </h3>
+
+              <p>
+                本项目采用 Python 进行全新开发，并选用 COM 接口与 AutoCAD 进行通讯。</p>
+
+              <p>经过验证，本项目的执行效率高于原轨迹程序。以同一条水平投影长度为 43.6m
+                的电泳轨道为例，两者执行不同任务的时间粗略对比如下：</p>
+
+              <table>
+                <caption>运行时间对比</caption>
+                <thead>
+                <tr>
+                  <td>&nbsp;</td>
+                  <th scope="col">绘制轨迹 /s</th>
+                  <th scope="col">工艺时间计算 /s</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <th scope="row">原程序</th>
+                  <td>xxx</td>
+                  <td>xxx</td>
+                </tr>
+                <tr>
+                  <th scope="row">本项目</th>
+                  <td>86.56</td>
+                  <td>93.97</td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section aria-labelledby="软件界面">
+            <hr>
+            <h2 id="软件界面">
+              <a href="#软件界面">软件界面</a>
+            </h2>
+            <div class="section-content">
+              <p>软件分为标题栏、菜单栏和功能区三大部分。</p>
+
+              <figure class="image img-wrapper">
+                <img alt="软件界面，包含标题栏、菜单栏和功能区" src="images/interface.png" width="300">
+                <figcaption>软件界面</figcaption>
+              </figure>
+
+              <h3 id="标题栏">
+                <a href="#标题栏">标题栏</a>
+              </h3>
+
+              <p>标题栏显示本软件的名称和版本号。</p>
+
+              <h3 id="菜单栏">
+                <a href="#菜单栏">菜单栏</a>
+              </h3>
+
+              <p>菜单栏提供一些常用操作，由「文件」和「帮助」两大菜单组成。</p>
+
+              <h4>文件菜单</h4>
+
+              <p>「文件」菜单目前仅包含「退出」功能。</p>
+
+              <figure class="image img-wrapper">
+                <img alt="文件菜单，包含退出选项" src="images/menu-file.png" width="80">
+                <figcaption>文件菜单</figcaption>
+              </figure>
+
+              <h4>帮助菜单</h4>
+
+              <p>「帮助」菜单包含「入门指南」、「更新日志」和「关于」功能。</p>
+
+              <ul>
+                <li>入门指南：即本文档，可查看本项目的操作说明。</li>
+                <li>更新日志：可查看本项目各版本的变动内容。</li>
+                <li>关于：版权提醒、AutoCAD 适配版本等。</li>
+              </ul>
+
+              <figure class="image img-wrapper">
+                <img alt="帮助菜单，包括入门指南、更新日志和关于选项" src="images/menu-help.png" width="100">
+                <figcaption>帮助菜单</figcaption>
+              </figure>
+
+              <h3 id="功能区">
+                <a href="#功能区">功能区</a>
+              </h3>
+
+              <p>功能区用于选择需要绘制的轨迹类型，输入各项参数，用于执行程序。</p>
+            </div>
+          </section>
+
+          <section aria-labelledby="软件使用">
+            <hr>
+            <h2 id="软件使用">
+              <a href="#软件使用">软件使用</a>
+            </h2>
+            <div class="section-content">
+              <h3 id="通用说明">
+                <a href="#通用说明">通用说明</a>
+              </h3>
+
+              <p>首先使用 AutoCAD 打开图纸，再打开本软件。</p>
+
+              <div class="notebox">
+                <blockquote>
+                  注意：请确保图纸已处于打开状态并置于当前窗口后，再打开本软件，否则软件将在当前图纸中执行。之后再浏览其他图纸，软件也会在最开始的图纸上执行。
+                </blockquote>
+              </div>
+
+              <p>在页面 1 中选择工件类型，软件界面会自动生成可绘制的轨迹类型，再选择想要绘制的轨迹类型，点击「下一步」。
+                未完成以上选择时，「下一步」按钮为灰色，无法使用。</p>
+
+              <figure class="image img-wrapper">
+                <img alt="页面 1" src="images/page1.png" width="200">
+                <figcaption>页面 1</figcaption>
+              </figure>
+
+              <p>在页面 2
+                中根据提示单击相应按钮，并输入参数，完成后点击「确定」，即可开始绘制轨迹，同时下方的进度条会显示程序执行进度。</p>
+
+              <figure class="image img-wrapper">
+                <img alt="页面 2" src="images/pendulum-process-path.png" width="500">
+                <figcaption>页面 2</figcaption>
+              </figure>
+
+              <p>当鼠标移至部分文字、按钮或输入框上方时，会出现提示文字。</p>
+
+              <p>若在页面 1 中不小心选择了错误的轨迹类型，可点击「上一步」重新选择工件和轨迹类型。</p>
+
+              <p>
+                进度条右侧的百分比为程序的执行进度，当百分比变为「完成」时，即程序执行完毕。若百分比长时间无变化，程序可能已出错，请点击「上一步」并重新执行程序。
+              </p>
+
+              <div class="notebox">
+                <blockquote>注意：在百分比变为「完成」前，请勿在 AutoCAD 程序中点击鼠标、键盘，否则可能中断程序。但可移动鼠标、用鼠标进行缩放操作。</blockquote>
+              </div>
+
+              <p>任何时刻可点击「退出」按钮退出程序，或通过「文件」-「退出」实现相同功能。</p>
+
+              <h4>按钮说明</h4>
+
+              <p>圆形按钮：为单选按钮，需要至少选择同组的其中一项。</p>
+
+              <p>
+                方形按钮：可单击进行选择。其中红色字体按钮为必须进行操作的按钮，单击并在图纸中选择相应的对象后，该按钮会变为绿色，提示选择成功。</p>
+
+              <p>方形输入框：输入相应参数，每一项均已设置默认值。若输入框为灰色，则该输入框不可用。</p>
+
+              <h3 id="摆杆部分">
+                <a href="#摆杆部分">摆杆部分</a>
+              </h3>
+
+              <p>
+                摆杆部分包含「工艺段 - 绘制轨迹」、「工艺段 - 仿真动画」、「返回段 - 绘制轨迹」、「返回段 -
+                仿真动画」、「浸入即出槽分析」和「工艺时间计算」六种功能。
+              </p>
+
+              <figure class="image img-wrapper">
+                <img alt="工件类型为摆杆时，可选择的轨迹类型" src="images/pendulum.png" width="500">
+                <figcaption>摆杆部分</figcaption>
+              </figure>
+
+              <h4>准备操作</h4>
+
+              <p>需绘制一条或多条<strong>多段线</strong>作为轨道 / 链条中心线。</p>
+
+              <p>需准备如下图块：</p>
+
+              <table>
+                <caption>摆杆图块定义要求</caption>
+                <thead>
+                <tr>
+                  <th scope="col">名称</th>
+                  <th scope="col">含义</th>
+                  <th scope="col">方向</th>
+                  <th scope="col">基点</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <th scope="row">ChainPlate</th>
+                  <td>链板</td>
+                  <td>水平</td>
+                  <td>前滚轮中心</td>
+                </tr>
+                <tr>
+                  <th scope="row">FSwing</th>
+                  <td>前摆杆</td>
+                  <td>竖直</td>
+                  <td>顶部套筒中心</td>
+                </tr>
+                <tr>
+                  <th scope="row">BSwing</th>
+                  <td>后摆杆</td>
+                  <td>竖直</td>
+                  <td>顶部套筒中心</td>
+                </tr>
+                <tr>
+                  <th scope="row">Skid&amp;Body</th>
+                  <td>橇体和工件</td>
+                  <td>水平</td>
+                  <td>电泳橇前支撑碗中心</td>
+                </tr>
+                </tbody>
+              </table>
+
+              <p>
+                以上图块的名称大小写、角度、基点必须严格按上表设置，且各图块的左右朝向一致。
+                图块朝向必须在「块编辑器」中查看和修改。下图为全部朝向左方的图块：
+              </p>
+
+              <figure class="image img-wrapper">
+                <img alt="工件类型为摆杆时，各图块的定义" src="images/pendulum-block.png" width="500">
+                <figcaption>摆杆图块定义</figcaption>
+              </figure>
+
+              <h4>工艺段 - 绘制轨迹</h4>
+
+              <p>此功能用于分析相邻工件在室体内的运行轨迹。需提前准备一条轨道中心线（必须为多段线）。</p>
+
+              <ul>
+                <li>
+                  轨迹线与起点：点击「单击选择」，在图纸中依次选择轨道中心线和轨迹开始的起点（必须为多段线的端点之一）。
+                </li>
+                <li>工件 / 摆杆块方向：选择图块方向，各图块方向需一致。</li>
+                <li>各参数均输入完成后，点击「确定」执行程序。</li>
+                <li><em>包络线</em>功能尚未开发，已禁用该选项。</li>
+              </ul>
+
+              <figure class="image img-wrapper">
+                <img alt="摆杆工艺段轨迹，包含多段线选择、参数输入" src="images/pendulum-process-path.png" width="500">
+                <figcaption>摆杆工艺段轨迹</figcaption>
+              </figure>
+
+              <h4>工艺段 - 仿真动画</h4>
+
+              <p>此功能用于分析相邻工件在室体内的运行轨迹。需提前准备一条轨道中心线（必须为多段线）。</p>
+
+              <p>与「工艺段 - 绘制轨迹」类似，并需输入「工件数量」和「工件节距」。</p>
+
+              <figure class="image img-wrapper">
+                <img alt="摆杆工艺段动画，包含多段线选择、参数输入" src="images/pendulum-process-anime.png" width="500">
+                <figcaption>摆杆工艺段动画</figcaption>
+              </figure>
+
+              <p>当前位置绘制完成后，根据命令栏提示选择下一步想要的操作：</p>
+              <ul>
+                <li>若按下「空格」或「回车」：清除当前工件位置，并自动前进一个步长的距离。</li>
+                <li>若输入「C」（不区分大小写）：保留当前工件位置，并自动前进一个步长的距离。</li>
+                <li>若按下「ESC」：保留当前工件位置，并退出程序。</li>
+              </ul>
+
+              <div class="notebox">
+                <blockquote>注意：请在工件位置发生变化，并且命令栏出现提示后再进行按键，按键请勿过快。</blockquote>
+              </div>
+
+              <h4>返回段 - 绘制轨迹</h4>
+
+              <p>
+                此功能用于分析摆杆在入口塔和出口塔内的运行轨迹。需提前准备一条轨道中心线和一条摆杆滚轮中心线（必须均为多段线）。</p>
+
+              <ul>
+                <li>
+                  轨迹线与起点：点击「单击选择」，在图纸中依次选择轨道中心线和轨迹开始的起点（必须为多段线的端点之一）。
+                </li>
+                <li>摆杆滚轮所在轨迹线：选择摆杆<strong>滚轮中心线</strong>。</li>
+                <li>工件 / 摆杆块方向：选择图块方向，各图块方向需一致。</li>
+                <li>摆杆塔：需选择绘制的轨迹对应哪一种摆杆塔。</li>
+                <li>各参数均输入完成后，点击「确定」执行程序。</li>
+                <li>默认使用后摆杆进行绘制。</li>
+              </ul>
+
+              <div class="notebox">
+                <blockquote>注意：轨迹线起点位置需符合摆杆实际运行方向，如入口塔的起点在低位，出口塔的起点在高位。</blockquote>
+              </div>
+
+              <figure class="image img-wrapper">
+                <img alt="摆杆返回段轨迹，包含多段线选择、参数输入" src="images/pendulum-return-path.png" width="500">
+                <figcaption>摆杆返回段轨迹</figcaption>
+              </figure>
+
+              <h4>返回段 - 仿真动画</h4>
+
+              <p>
+                此功能用于分析相邻摆杆在入口塔和出口塔内的位置关系。需提前准备一条轨道中心线和一条摆杆滚轮中心线（必须均为多段线）。</p>
+
+              <p>各参数与「返回段 - 绘制轨迹」类似，并需输入「摆杆间距」、「工件数量」和「工件节距」。</p>
+
+              <figure class="image img-wrapper">
+                <img alt="摆杆返回段动画，包含多段线选择、参数输入" src="images/pendulum-return-anime.png" width="500">
+                <figcaption>摆杆返回段动画</figcaption>
+              </figure>
+
+              <p>当前位置绘制完成后，根据命令栏提示选择下一步想要的操作：</p>
+              <ul>
+                <li>若按下「空格」或「回车」：清除当前摆杆位置，并自动前进一个步长的距离。</li>
+                <li>若输入「C」（不区分大小写）：保留当前摆杆位置，并自动前进一个步长的距离。</li>
+                <li>若按下「ESC」：保留当前摆杆位置，并退出程序。</li>
+              </ul>
+
+              <div class="notebox">
+                <blockquote>注意：请在摆杆位置发生变化，并且命令栏出现提示后再进行按键，按键请勿过快。</blockquote>
+              </div>
+
+              <h4>浸入即出槽分析</h4>
+
+              <p>
+                此功能用于分析相邻两台工件在浸入即出槽中，相对底部轨道中心前后对称时的位置关系。需提前准备一条轨道中心线（必须为多段线）。</p>
+
+              <ul>
+                <li>
+                  轨迹线与起点：点击「单击选择」，在图纸中依次选择轨道中心线和轨迹开始的起点（必须为多段线的端点之一）。
+                </li>
+                <li>轨迹中心点：点击「单击选择」，在图纸中选择底部轨道中点。</li>
+                <li>工件 / 摆杆块方向：选择图块方向，各图块方向需一致。</li>
+                <li>选择分析模式：选择摆杆的垂直状态。</li>
+                <li>各参数均输入完成后，点击「确定」执行程序。</li>
+              </ul>
+
+              <figure class="image img-wrapper">
+                <img alt="摆杆浸入即出槽分析，包含多段线选择、参数输入" src="images/pendulum-diptank.png" width="500">
+                <figcaption>摆杆浸入即出槽</figcaption>
+              </figure>
+
+              <h4>工艺时间计算</h4>
+
+              <p>此功能用于分析工件的全浸时间。需提前准备一条轨道中心线（必须为多段线）。</p>
+
+              <ul>
+                <li>
+                  轨迹线与起点：点击「单击选择」，在图纸中依次选择轨道中心线和轨迹开始的起点（必须为多段线的端点之一）。
+                </li>
+                <li>轨迹中心点：点击「单击选择」，在图纸中选择底部轨道中点。</li>
+                <li>工件 / 摆杆块方向：选择图块方向，各图块方向需一致。</li>
+                <li>摆杆状态：选择摆杆的垂直状态。</li>
+                <li>工件全浸点：点击「单击选择」，在对话框中选择 Skid&amp;Body 图块，并在块编辑器中依次选择浸入点和浸出点。</li>
+                <li>各参数均输入完成后，点击「确定」执行程序。</li>
+                <li>
+                  若图块中包含许多属性，非常杂乱，可通过点击「删除块属性」和「删除块参照属性」进行块属性的删除，具体可见提示对话框。
+                </li>
+              </ul>
+
+              <div class="notebox">
+                <blockquote>注意：请区分 AutoCAD 中对于「块定义」和「块参照」的定义。
+                  「块定义」是当前图纸块表中的记录。
+                  「块参照」是对块定义引用的实例，每一次插入块参照均相当于引用一次块定义，每个块参照均有各自独立的属性，如比例、角度等。
+                </blockquote>
+              </div>
+
+              <figure class="image img-wrapper">
+                <img alt="摆杆工艺时间分析，包含多段线选择、全浸点选择、参数输入、块属性删除"
+                     src="images/pendulum-immersion.png" width="500">
+                <figcaption>摆杆工艺时间</figcaption>
+              </figure>
+
+              <h3 id="翻转机部分">
+                <a href="#翻转机部分">翻转机部分</a>
+              </h3>
+
+              <p>目前已有的翻转机轨迹程序可在高版本 AutoCAD 中运行，因此暂未编写此部分程序。</p>
+
+              <h3 id="台车部分">
+                <a href="#台车部分">台车部分</a>
+              </h3>
+
+              <p>
+                台车部分包含「2台车 - 绘制轨迹」、「2台车 - 仿真动画」、「4台车 - 绘制轨迹」和「2台车 - 仿真动画」四种功能。其中 4
+                台车相关功能尚未开发。
+              </p>
+
+              <figure class="image img-wrapper">
+                <img alt="工件类型为台车时，可选择的轨迹类型" src="images/trolley.png" width="500">
+                <figcaption>台车部分</figcaption>
+              </figure>
+
+              <h4>2台车 - 绘制轨迹</h4>
+
+              <p>此功能用于分析 2 车组台车沿轨道水平或垂直上下坡运行的状况。
+                需提前准备一条链条中心线和一条轨道中心线（必须均为多段线，且可以是同一条线）。</p>
+
+              <ul>
+                <li>工件：点击「单击选择」，在图纸中选择工件图块。</li>
+                <li>
+                  链条中心线与起点：点击「单击选择」，在图纸中依次选择链条中心线和轨迹开始的起点（必须为多段线的端点之一）。
+                </li>
+                <li>
+                  铰接点中心线与起点：点击「单击选择」，在图纸中依次选择铰接点中心线和轨迹开始的起点（必须为多段线的端点之一）。
+                  <strong>与上一项的起点需在同一方向。</strong>
+                </li>
+                <li>工件块方向：选择图块方向。</li>
+                <li>各参数均输入完成后，点击「确定」执行程序。</li>
+              </ul>
+
+              <figure class="image img-wrapper">
+                <img alt="2 车组台车轨迹，包含工件选择、多段线选择、参数输入" src="images/trolley-2-path.png" width="500">
+                <figcaption>2 车组台车轨迹</figcaption>
+              </figure>
+
+              <h4>2台车 - 仿真动画</h4>
+
+              <p>此功能用于分析 2 车组台车的相邻工件沿轨道水平或垂直上下坡运行的位置关系。
+                需提前准备一条链条中心线和一条轨道中心线（必须均为多段线，且可以是同一条线）。</p>
+
+              <p>与「2台车 - 绘制轨迹」类似，并需输入「工件数量」和「工件节距」。</p>
+
+              <figure class="image img-wrapper">
+                <img alt="2 车组台车动画，包含工件选择、多段线选择、参数输入" src="images/trolley-2-anime.png" width="500">
+                <figcaption>2 车组台车动画</figcaption>
+              </figure>
+
+              <p>当前位置绘制完成后，根据命令栏提示选择下一步想要的操作：</p>
+              <ul>
+                <li>若按下「空格」或「回车」：清除当前工件位置，并自动前进一个步长的距离。</li>
+                <li>若输入「C」（不区分大小写）：保留当前工件位置，并自动前进一个步长的距离。</li>
+                <li>若按下「ESC」：保留当前工件位置，并退出程序。</li>
+              </ul>
+
+              <div class="notebox">
+                <blockquote>注意：请在工件位置发生变化，并且命令栏出现提示后再进行按键，按键请勿过快。</blockquote>
+              </div>
+            </div>
+          </section>
+
+          <section aria-labelledby="已知问题">
+            <hr>
+            <h2 id="已知问题">
+              <a href="#已知问题">已知问题</a>
+            </h2>
+            <div class="section-content">
+              <p>
+                运行过程中可能出现未知错误，导致程序停止，根据报警信息分析是与 AutoCAD 的通讯出现故障。
+                请先在 AutoCAD 中撤回程序已执行的操作（至最前一个 Oleapplication），再依次尝试点击「上一步」 -> 重启本程序 ->
+                将轨迹线和图块拷贝至新图中重试 -> 重启 AutoCAD。
+              </p>
+
+              <figure class="image img-wrapper">
+                <img alt="撤回" src="images/withdraw.png">
+                <figcaption>撤回</figcaption>
+              </figure>
+
+              <div class="notebox">
+                <blockquote>注意：若程序未能正确执行，包括点击确认后无反应、执行中断等，请勿反复点击「确定」尝试生成轨迹。</blockquote>
+              </div>
+
+              <p>若在点击方形按钮时失败（包括选择过程中断，选择后按钮无变化等），反复重新选择直至成功即可。</p>
+
+              <div class="notebox">
+                <blockquote>注意：请不要用各种形状、组合的多段线测试本程序，多段线符合实际的轨道布置即可。</blockquote>
+              </div>
+
+              <p>程序运行过程中，持续移动鼠标会有惊喜。</p>
+
+              <p>本软件体积较大，这是 Python 打包的限制，暂无好的解决方法。</p>
+            </div>
+          </section>
+
+          <section aria-labelledby="联系方式">
+            <hr>
+            <h2 id="联系方式">
+              <a href="#联系方式">联系方式</a>
+            </h2>
+            <div class="section-content">
+              <p>如果需联系开发者，可通过企业微信查找「路震寰」。</p>
+
+              <p>如果本项目对你有帮助，欢迎请开发者喝杯速溶咖啡。:-)</p>
+            </div>
+          </section>
+        </article>
+      </main>
+    </div>
+  </div>
+  <footer class="page-footer" id="nav-footer">
+    <p>© Copyright by LZH. All rights reversed.</p>
+  </footer>
+</div>
+</body>
+</html>
